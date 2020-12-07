@@ -4,16 +4,22 @@
 #include "gamelib.h"
 
 int main() {
-  int scelta = 0;
+  int scelta = 0, flag = 0;
   srand(time(NULL));
   stampa_menu();
   do {
     printf(" Inserisci una voce: ");
     scanf("%d", &scelta);
     switch(scelta) {
-      case 1: imposta_gioco();
+      case 1:
+        imposta_gioco();
+        flag = 1;
         break;
-      case 2: gioca();
+      case 2:
+        if(flag != 0)
+          gioca();
+        else
+          printf(" Devi prima settare il gioco\n");
         break;
       case 3: termina_gioco();
         printf(" Arrivederci!\n");

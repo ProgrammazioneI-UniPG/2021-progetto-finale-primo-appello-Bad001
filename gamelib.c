@@ -20,6 +20,7 @@ static const char * get_nome_giocatore(unsigned int num) {
     case 8: return "viola";
     case 9: return "bianco";
   }
+  return "NULL";
 }
 
 static const char * get_stato_giocatore(unsigned int num) {
@@ -29,6 +30,7 @@ static const char * get_stato_giocatore(unsigned int num) {
     case 2: return "assassinato";
     case 3: return "defenestrato";
   }
+  return "NULL";
 }
 
 static void stampa_giocatori() {
@@ -59,7 +61,7 @@ static void uccidi_astronauta() {
 
 void imposta_gioco() {
   termina_gioco();
-  unsigned int scelta = 0, numeri_estratti[10];
+  unsigned int scelta = 0, numeri_estratti[10], contatore_impostori = 0;
   num_giocatori = 0;
   printf(" Inserisci il numero dei giocatori per questa partita: ");
   do {
@@ -72,16 +74,41 @@ void imposta_gioco() {
   for(int i = 0; i < 10; i++) {
     numeri_estratti[i] = i;
   }
-  for(int i = 0; i < num_giocatori; i++) {
+  for(int i = 0; i < 10; i++) {
     int tmp = numeri_estratti[i];
-    int indice_random = rand() % num_giocatori;
-    numeri_estratti[i] = indice_random;
+    int indice_random = rand() % 10;
+    numeri_estratti[i] = numeri_estratti[indice_random];
     numeri_estratti[indice_random] = tmp;
   }
-  // Da fare le probabilità
   for(int i = 0; i < num_giocatori; i++) {
     giocatori[i].nome = numeri_estratti[i];
-    giocatori[i].stato = rand() % 2;
+    if(num_giocatori >= 4 && num_giocatori < 6) {
+      if(rand() % 4 == 0 && contatore_impostori < 3) {
+        giocatori[i].stato = 1;
+        contatore_impostori++;
+      }
+      else {
+        giocatori[i].stato = 0;
+      }
+    }
+    else if(num_giocatori >= 6 && num_giocatori < 8) {
+      if(rand() % 2 == 0 && contatore_impostori < 3) {
+        giocatori[i].stato = 1;
+        contatore_impostori++;
+      }
+      else {
+        giocatori[i].stato = 0;
+      }
+    }
+    else {
+      if((rand() % 100) < 75 && contatore_impostori < 3) {
+        giocatori[i].stato = 1;
+        contatore_impostori++;
+      }
+      else {
+        giocatori[i].stato = 0;
+      }
+    }
   }
   printf(" Inserisci il numero delle quest che dovranno completare gli astronauti: ");
   do {
