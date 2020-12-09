@@ -43,6 +43,21 @@ static const char * get_tipo_stanza(unsigned short int num) {
   return "NULL";
 }
 
+static void shuffle(unsigned short int lun, unsigned short int * array) {
+  for(int i = 0; i < lun; i++) {  // Azzero l'array per sicurezza
+    array[i] = 0;
+  }
+  for(int i = 0; i < lun; i++) {  // Assegno ad ogni cella un numero da 0 a lun
+    array[i] = i;
+  }
+  for(int i = 0; i < lun; i++) {  // Mischio i numeri nell'array
+    int tmp = array[i];
+    int indice_random = rand() % lun;
+    array[i] = array[indice_random];
+    array[indice_random] = tmp;
+  }
+}
+
 static void stampa_giocatori() {
   printf(" La stanza iniziale %p è di tipo %s\n", lista_stanze, get_tipo_stanza(lista_stanze -> tipo));
   for(int i = 0; i < num_giocatori; i++) {
@@ -70,9 +85,17 @@ static void uccidi_astronauta() {
 
 }
 
+static void usa_botola() {
+
+}
+
+static void sabotaggio() {
+
+}
+
 void imposta_gioco() {
   termina_gioco();
-  unsigned short int scelta = 0, numeri_estratti[10], contatore_impostori = 0, probabilita = 0;
+  unsigned short int scelta = 0, colori[10], contatore_impostori = 0, probabilita = 0;
   printf(" Inserisci il numero dei giocatori per questa partita: ");
   do {
     scanf("%hu", &num_giocatori);
@@ -102,17 +125,9 @@ void imposta_gioco() {
     stanza_inizio -> tipo = vuota;
   }
   lista_stanze = stanza_inizio;
-  for(int i = 0; i < 10; i++) {
-    numeri_estratti[i] = i;
-  }
-  for(int i = 0; i < 10; i++) {
-    int tmp = numeri_estratti[i];
-    int indice_random = rand() % 10;
-    numeri_estratti[i] = numeri_estratti[indice_random];
-    numeri_estratti[indice_random] = tmp;
-  }
+  shuffle(10, colori);
   for(int i = 0; i < num_giocatori; i++) {
-    giocatori[i].nome = numeri_estratti[i];
+    giocatori[i].nome = colori[i];
     if(num_giocatori >= 4 && num_giocatori < 6) {
       if(rand() % 4 == 0 && contatore_impostori < 3) {
         giocatori[i].stato = impostore;
@@ -167,7 +182,88 @@ void imposta_gioco() {
 }
 
 void gioca() {
-
+  unsigned short int turni[num_giocatori], contatore_impostori = 0, contatore_astronauti = 0;
+  unsigned short int vittoria_astronauti = 0, scelta = 0;
+  shuffle(num_giocatori, turni);
+  do {
+    printf(" I turni dei giocatori:\n");
+    for(int i = 0; i < num_giocatori; i++) {
+      printf("\tIl giocatore %s è il %d° a giocare\n", get_nome_giocatore(giocatori[turni[i]].nome), i+1);
+    }
+    for(int i = 0; i < num_giocatori && !vittoria_astronauti; i++) {
+      if(giocatori[turni[i]].stato == astronauta) {
+        printf(" Giocatore %s ti trovi in una stanza di tipo %s\n", get_nome_giocatore(giocatori[turni[i]].nome), get_tipo_stanza(giocatori[turni[i]].posizione -> tipo));
+        printf(" I giocatori presenti nella stanza sono:\n");
+        for(int j = 0; j < num_giocatori; j++) {
+          if((turni[i] != j) && giocatori[j].posizione == giocatori[turni[i]].posizione) {
+            if(giocatori[j].stato != assassinato && giocatori[j].stato != defenestrato) {
+              printf("\tGiocatore %s\n", get_nome_giocatore(giocatori[j].nome));
+            }
+          }
+        }
+        printf(" Giocatore %s cosa vuoi fare?\n", get_nome_giocatore(giocatori[turni[i]].nome));
+        do {
+          printf("  1) Avanza\n  2) Esegui quest\n  3) Chiamata di Emergenza\n");
+          printf(" Inserisci una voce: ");
+          scanf("%hu", &scelta);
+          switch(scelta) {
+            case 1: avanza();
+              break;
+            case 2: esegui_quest();
+              break;
+            case 3: chiamata_emergenza();
+              break;
+            default: printf(" Voce del menu inesistente\n");
+          }
+        } while(scelta != 1 && scelta != 2 && scelta != 3);
+      }
+      else if(giocatori[turni[i]].stato == impostore) {
+        printf(" Giocatore %s ti trovi in una stanza di tipo %s\n", get_nome_giocatore(giocatori[turni[i]].nome), get_tipo_stanza(giocatori[turni[i]].posizione -> tipo));
+        printf(" I giocatori presenti nella stanza sono:\n");
+        for(int j = 0; j < num_giocatori; j++) {
+          if((turni[i] != j) && giocatori[j].posizione == giocatori[turni[i]].posizione) {
+            if(giocatori[j].stato != assassinato && giocatori[j].stato != defenestrato) {
+              printf("\tGiocatore %s (%s)\n", get_nome_giocatore(giocatori[j].nome), get_stato_giocatore(giocatori[j].stato));
+            }
+          }
+        }
+        printf(" Giocatore %s cosa vuoi fare?\n", get_nome_giocatore(giocatori[turni[i]].nome));
+        do {
+          printf("  1) Avanza\n  2) Chiamata di emergenza\n  3) Uccidi astronauta\n  4) Usa botola\n  5) Sabota\n");
+          printf(" Inserisci una voce: ");
+          scanf("%hu", &scelta);
+          switch(scelta) {
+            case 1: avanza();
+              break;
+            case 2: chiamata_emergenza();
+              break;
+            case 3: uccidi_astronauta();
+              break;
+            case 4: usa_botola();
+              break;
+            case 5: sabotaggio();
+              break;
+            default: printf(" Voce del menu inesistente\n");
+          }
+        } while(scelta != 1 && scelta != 2 && scelta != 3 && scelta != 4 && scelta != 5);
+      }
+      else if(giocatori[turni[i]].stato == assassinato) {
+        printf(" Giocatore %s sei stato assassinato\n", get_nome_giocatore(giocatori[turni[i]].nome));
+      }
+      else {
+        printf(" Giocatore %s sei stato defenestrato\n", get_nome_giocatore(giocatori[turni[i]].nome));
+      }
+    }
+    shuffle(num_giocatori, turni);
+  } while((contatore_impostori > 0 && contatore_astronauti > 0) || !vittoria_astronauti);
+  if(vittoria_astronauti) {
+    printf(" Gli astronauti hanno vinto!!\n");
+  }
+  else {
+    printf(" Gli impostori hanno vinto!!\n");
+  }
+  // Preparo in caso si voglia rigiocare con gli stessi settaggi
+  termina_gioco();
 }
 
 void termina_gioco() {

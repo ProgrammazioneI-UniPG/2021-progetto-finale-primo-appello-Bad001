@@ -16,10 +16,13 @@ int main() {
         flag = 1;
         break;
       case 2:
-        if(flag != 0)
+        if(flag != 0) {
           gioca();
-        else
+          flag = 0;
+        }
+        else {
           printf(" Devi prima settare il gioco\n");
+        }
         break;
       case 3: termina_gioco();
         printf(" Arrivederci!\n");
