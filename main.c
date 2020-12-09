@@ -6,8 +6,8 @@
 int main() {
   int scelta = 0, flag = 0;
   srand(time(NULL));
-  stampa_menu();
   do {
+    stampa_menu();
     printf(" Inserisci una voce: ");
     scanf("%d", &scelta);
     switch(scelta) {

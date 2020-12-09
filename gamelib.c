@@ -36,15 +36,15 @@ static const char * get_stato_giocatore(unsigned short int num) {
 static const char * get_tipo_stanza(unsigned short int num) {
   switch(num) {
     case 0: return "vuota";
-    case 1: return "quest_semplice";
-    case 2: return "quest_complicata";
+    case 1: return "quest semplice";
+    case 2: return "quest complicata";
     case 3: return "botola";
   }
   return "NULL";
 }
 
 static void stampa_giocatori() {
-  printf(" La stanza iniziale %p è di tipo %s\n", &lista_stanze[0], get_tipo_stanza(stanza_inizio->tipo));
+  printf(" La stanza iniziale %p è di tipo %s\n", lista_stanze, get_tipo_stanza(lista_stanze -> tipo));
   for(int i = 0; i < num_giocatori; i++) {
     printf("\tIl giocatore %s è un %s\n", get_nome_giocatore(giocatori[i].nome), get_stato_giocatore(giocatori[i].stato));
   }
@@ -83,25 +83,25 @@ void imposta_gioco() {
   giocatori = (struct Giocatore *) calloc(num_giocatori, sizeof(struct Giocatore));
   stanza_inizio = (struct Stanza *) calloc(1, sizeof(struct Stanza));
   lista_stanze = (struct Stanza *) calloc(1, sizeof(struct Stanza));
-  stanza_inizio[0].avanti = NULL;
-  stanza_inizio[0].destra = NULL;
-  stanza_inizio[0].sinistra = NULL;
-  stanza_inizio[0].stanza_precedente = NULL;
-  stanza_inizio[0].emergenza_chiamata = non_effettuata;
+  stanza_inizio -> avanti = NULL;
+  stanza_inizio -> destra = NULL;
+  stanza_inizio -> sinistra = NULL;
+  stanza_inizio -> stanza_precedente = NULL;
+  stanza_inizio -> emergenza_chiamata = non_effettuata;
   probabilita = rand() % 100;
   if(probabilita < 15) {
-    stanza_inizio[0].tipo = quest_complicata;
+    stanza_inizio -> tipo = quest_complicata;
   }
   else if(probabilita >= 15 && probabilita < 40) {
-    stanza_inizio[0].tipo = botola;
+    stanza_inizio -> tipo = botola;
   }
   else if(probabilita >= 40 && probabilita < 70) {
-    stanza_inizio[0].tipo = quest_semplice;
+    stanza_inizio -> tipo = quest_semplice;
   }
   else {
-    stanza_inizio[0].tipo = vuota;
+    stanza_inizio -> tipo = vuota;
   }
-  lista_stanze[0] = *stanza_inizio;
+  lista_stanze = stanza_inizio;
   for(int i = 0; i < 10; i++) {
     numeri_estratti[i] = i;
   }
@@ -123,7 +123,7 @@ void imposta_gioco() {
       }
     }
     else if(num_giocatori >= 6 && num_giocatori < 8) {
-      if(rand() % 2 == 0 && contatore_impostori < 3) {
+      if((rand() % 100) < 30 && contatore_impostori < 3) {
         giocatori[i].stato = impostore;
         contatore_impostori++;
       }
@@ -132,7 +132,7 @@ void imposta_gioco() {
       }
     }
     else {
-      if(rand() % 4 != 0 && contatore_impostori < 3) {
+      if((rand() % 100) < 45 && contatore_impostori < 3) {
         giocatori[i].stato = impostore;
         contatore_impostori++;
       }
@@ -140,6 +140,7 @@ void imposta_gioco() {
         giocatori[i].stato = astronauta;
       }
     }
+    giocatori[i].posizione = stanza_inizio;
   }
   if(!contatore_impostori) {
     giocatori[rand()%num_giocatori].stato = impostore;
@@ -151,8 +152,8 @@ void imposta_gioco() {
       printf(" Le quest da finire non possono essere minori del numero dei giocatori\n Per favore reinserisci un valore valido: ");
     }
   } while(quest_da_finire < num_giocatori);
-  printf("  1) Stampa i giocatori\n  2) Inzia il gioco\n");
   do {
+    printf("  1) Stampa i giocatori\n  2) Inzia il gioco\n");
     printf(" Inserisci una voce: ");
     scanf("%hu", &scelta);
     switch(scelta) {
@@ -170,6 +171,9 @@ void gioca() {
 }
 
 void termina_gioco() {
+  giocatori = NULL; // Per evitare un memory leak essendo stanza_inizio e lista_stanze puntatori uguali
+  stanza_inizio = NULL;
+  lista_stanze = NULL;
   free(giocatori);
   free(stanza_inizio);
   free(lista_stanze);
