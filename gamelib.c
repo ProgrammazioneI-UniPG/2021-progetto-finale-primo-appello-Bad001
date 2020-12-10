@@ -5,7 +5,7 @@
 struct Stanza* stanza_inizio;
 struct Stanza* lista_stanze;
 struct Giocatore* giocatori;
-unsigned short int quest_da_finire, num_giocatori;
+unsigned short int quest_da_finire, num_giocatori, conta_stanze;
 
 static const char * get_nome_giocatore(unsigned short int num) {
   switch(num) {
@@ -69,8 +69,117 @@ static void inizia_gioco() {
   printf(" Impostazioni settate, torno al menu principale...\n");
 }
 
-static void avanza() {
-
+static void avanza(unsigned short int i) {
+  unsigned short int scelta = 0, probabilita = 0;
+  struct Stanza* tmp = NULL;
+  printf(" In quale direzione?\n");
+  do {
+    printf("  1) Avanti\n  2) Destra\n  3) Sinistra\n  4) Rimani fermo\n");
+    printf(" Inserisci una voce: ");
+    scanf("%hu", &scelta);
+    switch(scelta) {
+      case 1:
+        if(giocatori[i].posizione -> avanti == NULL) {
+          tmp = NULL;
+          tmp = giocatori[i].posizione;
+          // Do il nuovo indirizzo
+          giocatori[i].posizione -> avanti = realloc(giocatori[i].posizione -> avanti, (++conta_stanze) * sizeof(struct Stanza));
+          // Mi sposto effettivamente
+          giocatori[i].posizione = giocatori[i].posizione -> avanti;
+          giocatori[i].posizione -> stanza_precedente = tmp;
+          giocatori[i].posizione -> destra = NULL;
+          giocatori[i].posizione -> avanti = NULL;
+          giocatori[i].posizione -> sinistra = NULL;
+          giocatori[i].posizione -> emergenza_chiamata = non_effettuata;
+          probabilita = rand() % 100;
+          if(probabilita < 15) {
+            giocatori[i].posizione -> tipo = quest_complicata;
+          }
+          else if(probabilita >= 15 && probabilita < 40) {
+            giocatori[i].posizione -> tipo = botola;
+          }
+          else if(probabilita >= 40 && probabilita < 70) {
+            giocatori[i].posizione -> tipo = quest_semplice;
+          }
+          else {
+            giocatori[i].posizione -> tipo = vuota;
+          }
+          // Salvo il nuovo indirizzo nella lista delle stanze
+          lista_stanze = (struct Stanza *) realloc(lista_stanze, (++conta_stanze) * sizeof(struct Stanza));
+        }
+        else {
+          giocatori[i].posizione = giocatori[i].posizione -> avanti;
+        }
+        break;
+      case 2:
+        if(giocatori[i].posizione -> destra == NULL) {
+          tmp = NULL;
+          tmp = giocatori[i].posizione;
+          // Do il nuovo indirizzo
+          giocatori[i].posizione -> destra = realloc(giocatori[i].posizione -> destra, (++conta_stanze) * sizeof(struct Stanza));
+          // Mi sposto effettivamente
+          giocatori[i].posizione = giocatori[i].posizione -> destra;
+          giocatori[i].posizione -> stanza_precedente = tmp;
+          giocatori[i].posizione -> destra = NULL;
+          giocatori[i].posizione -> avanti = NULL;
+          giocatori[i].posizione -> sinistra = NULL;
+          giocatori[i].posizione -> emergenza_chiamata = non_effettuata;
+          probabilita = rand() % 100;
+          if(probabilita < 15) {
+            giocatori[i].posizione -> tipo = quest_complicata;
+          }
+          else if(probabilita >= 15 && probabilita < 40) {
+            giocatori[i].posizione -> tipo = botola;
+          }
+          else if(probabilita >= 40 && probabilita < 70) {
+            giocatori[i].posizione -> tipo = quest_semplice;
+          }
+          else {
+            giocatori[i].posizione -> tipo = vuota;
+          }
+          // Salvo il nuovo indirizzo nella lista delle stanze
+          lista_stanze = (struct Stanza *) realloc(lista_stanze, (++conta_stanze) * sizeof(struct Stanza));
+        }
+        else {
+          giocatori[i].posizione = giocatori[i].posizione -> destra;
+        }
+        break;
+      case 3:
+        if(giocatori[i].posizione -> sinistra == NULL) {
+          tmp = NULL;
+          tmp = giocatori[i].posizione;
+          // Do il nuovo indirizzo
+          giocatori[i].posizione -> sinistra = realloc(giocatori[i].posizione -> sinistra, (++conta_stanze) * sizeof(struct Stanza));
+          // Mi sposto effettivamente
+          giocatori[i].posizione = giocatori[i].posizione -> sinistra;
+          giocatori[i].posizione -> stanza_precedente = tmp;
+          giocatori[i].posizione -> destra = NULL;
+          giocatori[i].posizione -> avanti = NULL;
+          giocatori[i].posizione -> sinistra = NULL;
+          giocatori[i].posizione -> emergenza_chiamata = non_effettuata;
+          probabilita = rand() % 100;
+          if(probabilita < 15) {
+            giocatori[i].posizione -> tipo = quest_complicata;
+          }
+          else if(probabilita >= 15 && probabilita < 40) {
+            giocatori[i].posizione -> tipo = botola;
+          }
+          else if(probabilita >= 40 && probabilita < 70) {
+            giocatori[i].posizione -> tipo = quest_semplice;
+          }
+          else {
+            giocatori[i].posizione -> tipo = vuota;
+          }
+          // Salvo il nuovo indirizzo nella lista delle stanze
+          lista_stanze = (struct Stanza *) realloc(lista_stanze, (++conta_stanze) * sizeof(struct Stanza));
+        }
+        else {
+          giocatori[i].posizione = giocatori[i].posizione -> sinistra;
+        }
+        break;
+      default: printf(" Voce del menu inesistente\n");
+    }
+  } while(scelta != 1 && scelta != 2 && scelta != 3 && scelta != 4);
 }
 
 static void esegui_quest() {
@@ -125,6 +234,7 @@ void imposta_gioco() {
     stanza_inizio -> tipo = vuota;
   }
   lista_stanze = stanza_inizio;
+  conta_stanze++;
   shuffle(10, colori);
   for(int i = 0; i < num_giocatori; i++) {
     giocatori[i].nome = colori[i];
@@ -207,7 +317,7 @@ void gioca() {
           printf(" Inserisci una voce: ");
           scanf("%hu", &scelta);
           switch(scelta) {
-            case 1: avanza();
+            case 1: avanza(turni[i]);
               break;
             case 2: esegui_quest();
               break;
@@ -233,7 +343,7 @@ void gioca() {
           printf(" Inserisci una voce: ");
           scanf("%hu", &scelta);
           switch(scelta) {
-            case 1: avanza();
+            case 1: avanza(turni[i]);
               break;
             case 2: chiamata_emergenza();
               break;
@@ -262,7 +372,6 @@ void gioca() {
   else {
     printf(" Gli impostori hanno vinto!!\n");
   }
-  // Preparo in caso si voglia rigiocare con gli stessi settaggi
   termina_gioco();
 }
 
@@ -275,6 +384,7 @@ void termina_gioco() {
   free(lista_stanze);
   quest_da_finire = 0;
   num_giocatori = 0;
+  conta_stanze = 0;
 }
 
 void stampa_menu() {
