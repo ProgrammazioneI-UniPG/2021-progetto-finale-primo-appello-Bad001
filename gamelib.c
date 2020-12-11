@@ -175,25 +175,51 @@ static unsigned short int esegui_quest(unsigned short int i) {
 }
 
 static void chiamata_emergenza(unsigned short int i) {
-  
+
 }
 
 static void uccidi_astronauta(unsigned short int i) {
-
+  unsigned short int contatore_astronauti = 0, scelta = 0;
+  unsigned short int astronauti[num_giocatori];
+  for(int j = 0; j < num_giocatori; j++) {
+    if(giocatori[i].posizione == giocatori[j].posizione && giocatori[j].stato == astronauta) {
+      astronauti[contatore_astronauti++] = j;
+    }
+  }
+  if(contatore_astronauti > 0) {
+    printf(" Gli astronauti presenti nella stanza %p\n", giocatori[i].posizione);
+    for(int j = 0; j < contatore_astronauti; j++) {
+      printf("\t%d) per uccidere il giocatore %s\n", j, get_nome_giocatore(giocatori[astronauti[j]].nome));
+    }
+    printf(" Inserisci il corrispondente numero: ");
+    do {
+      scanf("%hu", &scelta);
+      if(scelta > contatore_astronauti || scelta < 0) {
+        printf(" Valore non valido\n Per favore reinserisci un valore valido: ");
+      }
+      else {
+        giocatori[astronauti[scelta]].stato = assassinato;
+        printf(" Il giocatore %s è stato assassinato\n", get_nome_giocatore(giocatori[astronauti[scelta]].nome));
+      }
+    } while(scelta > contatore_astronauti || scelta < 0);
+  }
+  else {
+    printf(" Non sono presenti astronauti nella stanza %p\n", giocatori[i].posizione);
+  }
 }
 
 static void usa_botola(unsigned short int i) {
-  unsigned short int conta_botole = 0;
+  unsigned short int contatore_botole = 0;
   unsigned short int indice_casuale = 0;
   struct Stanza* lista_stanze_botola[conta_stanze];
   if(giocatori[i].posizione -> tipo == botola) {
     for(int i = 0; i < conta_stanze; i++) {
       if(lista_stanze[i].tipo == botola) {
         lista_stanze_botola[i] = &lista_stanze[i];
-        conta_botole++;
+        contatore_botole++;
       }
     }
-    if(conta_botole == 1) {
+    if(contatore_botole == 1) {
       do {
         indice_casuale = rand() % conta_stanze;
         giocatori[i].posizione = &lista_stanze[indice_casuale];
@@ -201,7 +227,7 @@ static void usa_botola(unsigned short int i) {
     }
     else {
       do {
-        indice_casuale = rand() % conta_botole;
+        indice_casuale = rand() % contatore_botole;
         giocatori[i].posizione = lista_stanze_botola[indice_casuale];
       } while(giocatori[i].posizione == lista_stanze_botola[indice_casuale]);
     }
@@ -343,7 +369,9 @@ void gioca() {
           switch(scelta) {
             case 1: avanza(turni[i]);
               break;
-            case 2: quest_finite += esegui_quest(turni[i]);
+            case 2:
+              quest_finite += esegui_quest(turni[i]);
+              printf(" Quest rimanenti: %hu\n", quest_da_finire-quest_finite);
               break;
             case 3: chiamata_emergenza(turni[i]);
               break;
