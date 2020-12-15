@@ -9,16 +9,16 @@ unsigned short int quest_da_finire, num_giocatori, conta_stanze;
 
 static const char * get_nome_giocatore(unsigned short int num) {
   switch(num) {
-    case 0: return "rosso";
-    case 1: return "blu";
-    case 2: return "giallo";
-    case 3: return "verde";
-    case 4: return "nero";
-    case 5: return "ciano";
-    case 6: return "arancione";
-    case 7: return "rosa";
-    case 8: return "viola";
-    case 9: return "bianco";
+    case 0: return "\033[1;31mrosso\033[0m";
+    case 1: return "\033[1;34mblu\033[0m";
+    case 2: return "\033[1;33mgiallo\033[0m";
+    case 3: return "\033[1;32mverde\033[0m";
+    case 4: return "\e[47m\e[1;30mnero\033[0m";
+    case 5: return "\033[1;36mciano\033[0m";
+    case 6: return "\e[1;91marancione\033[0m";
+    case 7: return "\033[1;35mrosa\033[0m";
+    case 8: return "\e[1;95mviola\033[0m";
+    case 9: return "\033[1;37mbianco\033[0m";
   }
   return "NULL";
 }
@@ -174,8 +174,77 @@ static unsigned short int esegui_quest(unsigned short int i) {
   return 0;
 }
 
-static void chiamata_emergenza(unsigned short int i) {
-
+static unsigned short int chiamata_emergenza(unsigned short int i) {
+  if(giocatori[i].posizione -> emergenza_chiamata == non_effettuata) {
+    unsigned short int assassinato_presente = 0, astronauti = 0, impostori = 0;
+    for(int j = 0; j < num_giocatori; j++) {
+      if(giocatori[i].posizione == giocatori[j].posizione && giocatori[j].stato != defenestrato) {
+        if(giocatori[j].stato == assassinato) {
+          assassinato_presente = 1;
+        }
+        if(giocatori[j].stato == astronauta) {
+          astronauti++;
+        }
+        if(giocatori[j].stato == impostore) {
+          impostori++;
+        }
+      }
+    }
+    if(assassinato_presente && (astronauti+impostori) > 1) {
+      unsigned short int probabilita[num_giocatori];
+      giocatori[i].posizione -> emergenza_chiamata = effettuata;
+      for(int i = 0; i < num_giocatori; i++) {
+        probabilita[i] = 0;
+      }
+      for(int j = 0; j < num_giocatori; j++) {
+        if(giocatori[j].posizione == giocatori[i].posizione && giocatori[j].stato != assassinato && giocatori[j].stato != defenestrato) {
+          if(giocatori[j].stato == astronauta) {
+            probabilita[j] = (unsigned short int) abs(30 + ((20 * impostori) - (20 * (astronauti-1))));
+          }
+          if(giocatori[j].stato == impostore) {
+            probabilita[j] = (unsigned short int) abs(30 + ((20 * astronauti) - (20 * (impostori-1))));
+          }
+        }
+      }
+      unsigned short int max = 0, giocatori_a_rischio[num_giocatori], num_giocatori_a_rischio = 0, indice_defenestrato = 0;
+      for(int i = 0; i < num_giocatori; i++) {
+        giocatori_a_rischio[i] = 0;
+      }
+      for(int i = 0; i < num_giocatori; i++) {
+        if(max < probabilita[i]) {
+          max = probabilita[i];
+        }
+      }
+      for(int i = 0; i < num_giocatori; i++) {
+        if(probabilita[i] == max) {
+          giocatori_a_rischio[num_giocatori_a_rischio++] = i;
+        }
+      }
+      indice_defenestrato = giocatori_a_rischio[rand()%num_giocatori_a_rischio];
+      if(giocatori[indice_defenestrato].stato == astronauta) {
+        giocatori[indice_defenestrato].stato = defenestrato;
+        printf(" Il giocatore %s non era un impostore\n", get_nome_giocatore(giocatori[indice_defenestrato].nome));
+        return 1;
+      }
+      if(giocatori[indice_defenestrato].stato == impostore) {
+        giocatori[indice_defenestrato].stato = defenestrato;
+        printf(" Il giocatore %s era un impostore\n", get_nome_giocatore(giocatori[indice_defenestrato].nome));
+        return 2;
+      }
+    }
+    else {
+      if(!assassinato_presente) {
+        printf(" Non ci sono cadaveri nella stanza %p\n", giocatori[i].posizione);
+      }
+      else {
+        printf(" Sei solo con il cadavere, non puoi incolpare nessuno\n");
+      }
+    }
+  }
+  else {
+    printf(" La chiamata d'emergenza è già stata effettuata per questa stanza\n");
+  }
+  return 0;
 }
 
 static unsigned short int uccidi_astronauta(unsigned short int i) {
@@ -354,7 +423,7 @@ void imposta_gioco() {
 
 void gioca() {
   unsigned short int turni[num_giocatori], contatore_impostori = 0, contatore_astronauti = 0;
-  unsigned short int scelta = 0, quest_finite = 0, contatore_escludi_defunti = 0, esito_uccisione = 0;
+  unsigned short int scelta = 0, quest_finite = 0, contatore_escludi_defunti = 0, esito_morte = 0;
   for(int i = 0; i < num_giocatori; i++) {
     if(giocatori[i].stato == astronauta) {
       contatore_astronauti++;
@@ -406,7 +475,15 @@ void gioca() {
               quest_finite += esegui_quest(turni[i]);
               printf(" Quest rimanenti: %hu\n", quest_da_finire-quest_finite);
               break;
-            case 3: chiamata_emergenza(turni[i]);
+            case 3:
+              esito_morte = chiamata_emergenza(turni[i]);
+              if(esito_morte == 1) {
+                contatore_astronauti--;
+              }
+              if(esito_morte == 2) {
+                contatore_impostori--;
+              }
+              esito_morte = 0;
               break;
             default: printf(" Voce del menu inesistente\n");
           }
@@ -430,16 +507,25 @@ void gioca() {
           switch(scelta) {
             case 1: avanza(turni[i]);
               break;
-            case 2: chiamata_emergenza(turni[i]);
-              break;
-            case 3:
-              esito_uccisione = uccidi_astronauta(turni[i]);
-              if(esito_uccisione == 1) {
+            case 2:
+              esito_morte = chiamata_emergenza(turni[i]);
+              if(esito_morte == 1) {
                 contatore_astronauti--;
               }
-              if(esito_uccisione == 2) {
+              if(esito_morte == 2) {
                 contatore_impostori--;
               }
+              esito_morte = 0;
+              break;
+            case 3:
+              esito_morte = uccidi_astronauta(turni[i]);
+              if(esito_morte == 1) {
+                contatore_astronauti--;
+              }
+              if(esito_morte == 2) {
+                contatore_impostori--;
+              }
+              esito_morte = 0;
               break;
             case 4: usa_botola(turni[i]);
               break;
