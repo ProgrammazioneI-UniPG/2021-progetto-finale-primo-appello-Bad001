@@ -180,7 +180,7 @@ static void chiamata_emergenza(unsigned short int i) {
 
 static unsigned short int uccidi_astronauta(unsigned short int i) {
   unsigned short int contatore_astronauti = 0, scelta = 0;
-  unsigned short int astronauti[num_giocatori];
+  unsigned short int astronauti[num_giocatori], probabilita = 0;
   for(int j = 0; j < num_giocatori; j++) {
     if(giocatori[i].posizione == giocatori[j].posizione && giocatori[j].stato == astronauta) {
       astronauti[contatore_astronauti++] = j;
@@ -202,6 +202,21 @@ static unsigned short int uccidi_astronauta(unsigned short int i) {
         printf(" Il giocatore %s è stato assassinato\n", get_nome_giocatore(giocatori[astronauti[scelta]].nome));
       }
     } while(scelta >= contatore_astronauti || scelta < 0);
+    for(int i = 0; i < contatore_astronauti; i++) {
+      if(astronauti[i] != scelta) {
+        probabilita += 50;
+      }
+    }
+    for(int j = 0; j < num_giocatori; j++) {
+      if(giocatori[i].posizione -> stanza_precedente == giocatori[j].posizione && giocatori[j].stato == astronauta) {
+        probabilita += 20;
+      }
+    }
+    if((rand()%100) < probabilita) {
+      giocatori[i].stato = defenestrato;
+      printf(" Giocatore %s ti hanno scoperto!\n Sei stato defenestrato\n", get_nome_giocatore(giocatori[i].nome));
+      return 2;
+    }
     return 1;
   }
   else {
@@ -339,7 +354,7 @@ void imposta_gioco() {
 
 void gioca() {
   unsigned short int turni[num_giocatori], contatore_impostori = 0, contatore_astronauti = 0;
-  unsigned short int scelta = 0, quest_finite = 0, contatore_escludi_defunti = 0;
+  unsigned short int scelta = 0, quest_finite = 0, contatore_escludi_defunti = 0, esito_uccisione = 0;
   for(int i = 0; i < num_giocatori; i++) {
     if(giocatori[i].stato == astronauta) {
       contatore_astronauti++;
@@ -418,8 +433,12 @@ void gioca() {
             case 2: chiamata_emergenza(turni[i]);
               break;
             case 3:
-              if(uccidi_astronauta(turni[i])) {
+              esito_uccisione = uccidi_astronauta(turni[i]);
+              if(esito_uccisione == 1) {
                 contatore_astronauti--;
+              }
+              if(esito_uccisione == 2) {
+                contatore_impostori--;
               }
               break;
             case 4: usa_botola(turni[i]);
