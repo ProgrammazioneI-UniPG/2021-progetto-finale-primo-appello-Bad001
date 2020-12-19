@@ -307,11 +307,13 @@ static unsigned short int uccidi_astronauta(unsigned short int i) {
 static void usa_botola(unsigned short int i) {
   unsigned short int contatore_botole = 0;
   unsigned short int indice_casuale = 0;
-  struct Stanza* lista_stanze_botola[conta_stanze];
+  unsigned short int conta_stanze_botola = 0;
+  struct Stanza* lista_stanze_botola = (struct Stanza *) malloc(sizeof(struct Stanza));
   if(giocatori[i].posizione -> tipo == botola && conta_stanze > 1) {
     for(int i = 0; i < conta_stanze; i++) {
       if(lista_stanze[i].avanti -> tipo == botola) {
-        lista_stanze_botola[i] = lista_stanze[i].avanti;
+        lista_stanze_botola[conta_stanze_botola].avanti = lista_stanze[i].avanti;
+        lista_stanze_botola[++conta_stanze_botola].avanti = (struct Stanza *) malloc(sizeof(struct Stanza));
         contatore_botole++;
       }
     }
@@ -325,8 +327,8 @@ static void usa_botola(unsigned short int i) {
     else {
       do {
         indice_casuale = rand() % contatore_botole;
-      } while(giocatori[i].posizione == lista_stanze_botola[indice_casuale]);
-      giocatori[i].posizione = lista_stanze_botola[indice_casuale];
+      } while(giocatori[i].posizione == lista_stanze_botola[indice_casuale].avanti);
+      giocatori[i].posizione = lista_stanze_botola[indice_casuale].avanti;
       printf(" Giocatore %s ti sei spostato nella stanza %p\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione);
     }
   }
@@ -338,6 +340,7 @@ static void usa_botola(unsigned short int i) {
       printf(" La stanza %p non è di tipo botola, ma di tipo %s\n", giocatori[i].posizione, get_tipo_stanza(giocatori[i].posizione -> tipo));
     }
   }
+  free(lista_stanze_botola);
 }
 
 // Funzione che permette all'impostore di cambiare lo stato di una stanza di tipo quest_semplice/quest_complicata a vuota
@@ -464,12 +467,10 @@ void gioca() {
         printf("\tIl giocatore %s è il %d° a giocare\n", get_nome_giocatore(giocatori[turni[i]].nome), ++contatore_escludi_defunti);
       }
     }
-/*
     printf(" Le stanze:\n");
     for(int i = 0; i < conta_stanze; i++) {
       printf("\t%p\n", lista_stanze[i].avanti);
     }
-*/
   // Ciclo fino a quando i contatori degli astronauti e quello degli impostori è maggiore di 0 e i minore del numero dei giocatori (per rimischiare i turni)
     for(int i = 0; i < num_giocatori && (quest_finite < quest_da_finire && contatore_impostori > 0 && contatore_astronauti > 0); i++) {
       if(giocatori[turni[i]].stato == astronauta) { // Se il giocatore che sta giocando è un astronauta
