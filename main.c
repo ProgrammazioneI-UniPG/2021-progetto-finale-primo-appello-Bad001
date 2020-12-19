@@ -4,21 +4,23 @@
 #include "gamelib.h"
 
 int main() {
-  int scelta = 0, flag = 0;
+  unsigned short int scelta = 0, flag = 0;
+  system("clear");  // Pulisco lo schermo
   srand(time(NULL));
   do {
     stampa_menu();
     printf(" Inserisci una voce: ");
-    scanf("%d", &scelta);
+    scanf("%hu", &scelta);
+    while (getchar()!='\n');  // Svuoto il buffer dello standard input
     switch(scelta) {
       case 1:
         imposta_gioco();
-        flag = 1;
+        flag = 1; // Se flag = 1 significa che il gioco è stato settato correttamente
         break;
       case 2:
-        if(flag != 0) {
+        if(flag) {
           gioca();
-          flag = 0;
+          flag = 0; // Riporto il flag a 0
         }
         else {
           printf(" Devi prima settare il gioco\n");
