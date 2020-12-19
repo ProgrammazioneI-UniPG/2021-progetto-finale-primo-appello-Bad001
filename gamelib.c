@@ -474,7 +474,7 @@ void gioca() {
         printf("\tIl giocatore %s è il %d° a giocare\n", get_nome_giocatore(giocatori[turni[i]].nome), ++contatore_escludi_defunti);
       }
     }
-    printf(" Memorizzate i turni, dopodiché il giocatore %s dovrà premere invio per iniziare a giocare...", get_nome_giocatore(giocatori[turni[0]].nome));
+    printf(" Memorizzate i turni, dopodiché premere invio per ricominciare il giro...");
     getchar();
     system("clear");  // Pulisco lo schermo
     // Ciclo fino a quando i contatori degli astronauti e quello degli impostori è maggiore di 0 e i minore del numero dei giocatori (per rimischiare i turni)
@@ -521,7 +521,7 @@ void gioca() {
             default: printf(" Voce del menu inesistente\n");
           }
         } while(scelta != 1 && scelta != 2 && scelta != 3);
-        printf(" Giocatore %s premi invio e cedi il computer al prossimo giocatore...\n", get_nome_giocatore(giocatori[turni[i]].nome));
+        printf(" Giocatore %s premi invio e cedi il computer al prossimo giocatore...", get_nome_giocatore(giocatori[turni[i]].nome));
         getchar();
         system("clear");  // Pulisco lo schermo
       }
@@ -573,7 +573,7 @@ void gioca() {
             default: printf(" Voce del menu inesistente\n");
           }
         } while(scelta != 1 && scelta != 2 && scelta != 3 && scelta != 4 && scelta != 5);
-        printf(" Giocatore %s premi invio e cedi il computer al prossimo giocatore...\n", get_nome_giocatore(giocatori[turni[i]].nome));
+        printf(" Giocatore %s premi invio e cedi il computer al prossimo giocatore...", get_nome_giocatore(giocatori[turni[i]].nome));
         getchar();
         system("clear");  // Pulisco lo schermo
       }
