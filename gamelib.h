@@ -15,7 +15,7 @@ struct Stanza {
   struct Stanza* sinistra;
   struct Stanza* destra;
   struct Stanza* stanza_precedente;
-
+  struct Stanza* node;
 };
 
 struct Giocatore {

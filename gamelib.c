@@ -63,7 +63,7 @@ static void mischia(unsigned short int lun, unsigned short int * array) {
 }
 
 static void stampa_giocatori() {
-  printf(" La stanza iniziale %p è di tipo %s\n", lista_stanze -> avanti, get_tipo_stanza(lista_stanze -> avanti -> tipo));
+  printf(" La stanza iniziale %p è di tipo %s\n", lista_stanze -> node, get_tipo_stanza(lista_stanze -> node -> tipo));
   for(int i = 0; i < num_giocatori; i++) {
     printf("\tIl giocatore %s è un %s\n", get_nome_giocatore(giocatori[i].nome), get_stato_giocatore(giocatori[i].stato));
   }
@@ -95,8 +95,8 @@ static void crea_stanza(unsigned short int i) {
     giocatori[i].posizione -> tipo = vuota;
   }
   // Salvo la stanza appena creata nella lista delle stanze
-  lista_stanze[conta_stanze].avanti = (struct Stanza *) malloc(sizeof(struct Stanza));
-  lista_stanze[conta_stanze++].avanti = giocatori[i].posizione;
+  lista_stanze[conta_stanze].node = (struct Stanza *) malloc(sizeof(struct Stanza));
+  lista_stanze[conta_stanze++].node = giocatori[i].posizione;
 }
 
 // Funzione che permette lo spostamento del giocatore
@@ -311,8 +311,8 @@ static void usa_botola(unsigned short int i) {
   struct Stanza* lista_stanze_botola = (struct Stanza *) malloc(sizeof(struct Stanza));
   if(giocatori[i].posizione -> tipo == botola && conta_stanze > 1) {
     for(int i = 0; i < conta_stanze; i++) {
-      if(lista_stanze[i].avanti -> tipo == botola) {
-        lista_stanze_botola[conta_stanze_botola].avanti = lista_stanze[i].avanti;
+      if(lista_stanze[i].node -> tipo == botola) {
+        lista_stanze_botola[conta_stanze_botola].avanti = lista_stanze[i].node;
         lista_stanze_botola[++conta_stanze_botola].avanti = (struct Stanza *) malloc(sizeof(struct Stanza));
         contatore_botole++;
       }
@@ -320,8 +320,8 @@ static void usa_botola(unsigned short int i) {
     if(contatore_botole == 1) {
       do {
         indice_casuale = rand() % conta_stanze;
-      } while(giocatori[i].posizione == lista_stanze[indice_casuale].avanti);
-      giocatori[i].posizione = lista_stanze[indice_casuale].avanti;
+      } while(giocatori[i].posizione == lista_stanze[indice_casuale].node);
+      giocatori[i].posizione = lista_stanze[indice_casuale].node;
       printf(" Giocatore %s ti sei spostato nella stanza %p\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione);
     }
     else {
@@ -387,7 +387,7 @@ void imposta_gioco() {
   else {
     stanza_inizio -> tipo = vuota;
   }
-  lista_stanze -> avanti = stanza_inizio; // Salvo la stanza d'inizio nella lista delle stanze
+  lista_stanze -> node = stanza_inizio; // Salvo la stanza d'inizio nella lista delle stanze
   conta_stanze++; // Incremento il contatore delle stanze
   mischia(10, colori);  // Mischio un array di 10 elementi (short int senza segno da 0 a 9)
   // Popolo l'array giocatori
@@ -469,7 +469,7 @@ void gioca() {
     }
     printf(" Le stanze:\n");
     for(int i = 0; i < conta_stanze; i++) {
-      printf("\t%p\n", lista_stanze[i].avanti);
+      printf("\t%p\n", lista_stanze[i].node);
     }
   // Ciclo fino a quando i contatori degli astronauti e quello degli impostori è maggiore di 0 e i minore del numero dei giocatori (per rimischiare i turni)
     for(int i = 0; i < num_giocatori && (quest_finite < quest_da_finire && contatore_impostori > 0 && contatore_astronauti > 0); i++) {
