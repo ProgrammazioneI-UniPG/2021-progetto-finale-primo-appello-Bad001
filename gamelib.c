@@ -5,8 +5,9 @@
 struct Stanza* stanza_inizio;
 struct Stanza* lista_stanze;
 struct Giocatore* giocatori;
-unsigned short int quest_da_finire, num_giocatori, conta_stanze;
+unsigned short int quest_da_finire, num_giocatori, conta_stanze;  // Conta stanze è il numero totale delle stanze
 
+// Funzione che in base al numero passato per parametro torna una stringa colorata che rappresenta il nome del giocatore
 static const char * get_nome_giocatore(unsigned short int num) {
   switch(num) {
     case 0: return "\033[1;31mrosso\033[0m";
@@ -23,6 +24,7 @@ static const char * get_nome_giocatore(unsigned short int num) {
   return "NULL";
 }
 
+// Funzione che in base al numero passato per parametro torna lo stato del giocatore
 static const char * get_stato_giocatore(unsigned short int num) {
   switch(num) {
     case 0: return "astronauta";
@@ -33,6 +35,7 @@ static const char * get_stato_giocatore(unsigned short int num) {
   return "NULL";
 }
 
+// Funzione che in base al numero passato per parametro torna il tipo della stanza
 static const char * get_tipo_stanza(unsigned short int num) {
   switch(num) {
     case 0: return "vuota";
@@ -43,6 +46,7 @@ static const char * get_tipo_stanza(unsigned short int num) {
   return "NULL";
 }
 
+// Funzione che mischia un array di short int senza segno
 static void mischia(unsigned short int lun, unsigned short int * array) {
   for(int i = 0; i < lun; i++) {  // Azzero l'array per sicurezza
     array[i] = 0;
@@ -65,10 +69,12 @@ static void stampa_giocatori() {
   }
 }
 
+// Si poteva omettere ma era richiesta nel pdf
 static void inizia_gioco() {
   printf(" Impostazioni settate, torno al menu principale...\n");
 }
 
+// Funzione che acquisisce l'indice del giocatore attuale creando la stanza appena scoperta
 static void crea_stanza(unsigned short int i) {
   unsigned short int probabilita = 0;
   giocatori[i].posizione -> destra = NULL;
@@ -88,10 +94,12 @@ static void crea_stanza(unsigned short int i) {
   else {
     giocatori[i].posizione -> tipo = vuota;
   }
+  // Salvo la stanza appena creata nella lista delle stanze
   lista_stanze[conta_stanze].avanti = (struct Stanza *) malloc(sizeof(struct Stanza));
   lista_stanze[conta_stanze++].avanti = giocatori[i].posizione;
 }
 
+// Funzione che permette lo spostamento del giocatore
 static void avanza(unsigned short int i) {
   unsigned short int scelta = 0;
   struct Stanza* tmp;
@@ -156,48 +164,50 @@ static void avanza(unsigned short int i) {
   } while(scelta != 1 && scelta != 2 && scelta != 3 && scelta != 4);
 }
 
+// Funzione che fa eseguire una quest (se possibile) al giocatore che l'ha richiamata
 static unsigned short int esegui_quest(unsigned short int i) {
   if(giocatori[i].posizione -> tipo == quest_semplice) {
-    giocatori[i].posizione -> tipo = vuota;
-    return 1;
+    giocatori[i].posizione -> tipo = vuota; // Cambio stato
+    return 1; // Torno 1 per il decremento a quest_da_finire
   }
   else if(giocatori[i].posizione -> tipo == quest_complicata) {
-    giocatori[i].posizione -> tipo = vuota;
-    return 2;
+    giocatori[i].posizione -> tipo = vuota; // Cambio stato
+    return 2; // Torno 2 per il decremento a quest_da_finire
   }
   else {
     printf(" La stanza %p non ha quest disponibili\n", giocatori[i].posizione);
   }
-  return 0;
+  return 0; // Se torno 0 significa che la stanza in cui è presente il giocatore non è di tipo quest_semplice né quest_complicata
 }
 
+// Funzione che fa effettuare una chiamata d'emergenza (se possibile) al giocatore che l'ha richiamata
 static unsigned short int chiamata_emergenza(unsigned short int i) {
-  if(giocatori[i].posizione -> emergenza_chiamata == non_effettuata) {
+  if(giocatori[i].posizione -> emergenza_chiamata == non_effettuata) {  // Controllo se la chiamata è già stata effettuata
     unsigned short int assassinato_presente = 0, astronauti = 0, impostori = 0;
-    for(int j = 0; j < num_giocatori; j++) {
+    for(int j = 0; j < num_giocatori; j++) {  // Qua controllo i giocatori presenti all'interno della stessa stanza e il loro stato
       if(giocatori[i].posizione == giocatori[j].posizione && giocatori[j].stato != defenestrato) {
         if(giocatori[j].stato == assassinato) {
-          assassinato_presente = 1;
+          assassinato_presente = 1; // Flag
         }
         if(giocatori[j].stato == astronauta) {
-          astronauti++;
+          astronauti++; // contatore astronauti presenti
         }
         if(giocatori[j].stato == impostore) {
-          impostori++;
+          impostori++;  // contatore impostori presenti
         }
       }
     }
     if(assassinato_presente && (astronauti+impostori) > 1) {
-      unsigned short int probabilita[num_giocatori];
-      giocatori[i].posizione -> emergenza_chiamata = effettuata;
+      unsigned short int probabilita[num_giocatori];  // Creo un array che conterrà le diverse probabilità dei giocatori presenti
+      giocatori[i].posizione -> emergenza_chiamata = effettuata;  // Cambio il campo emergenza_chiamata della stanza in effettuata
       for(int i = 0; i < num_giocatori; i++) {
-        probabilita[i] = 0;
+        probabilita[i] = 0; // Azzero l'array
       }
       for(int j = 0; j < num_giocatori; j++) {
         if(giocatori[j].posizione == giocatori[i].posizione && giocatori[j].stato != assassinato && giocatori[j].stato != defenestrato) {
           if(giocatori[j].stato == astronauta) {
             probabilita[j] = (unsigned short int) abs(30 + ((20 * impostori) - (20 * (astronauti-1))));
-          }
+          } // Salvo le diverse probabilita in base al numero degli impostori e astronauti (abs in caso di valori negativi nel conteggio)
           if(giocatori[j].stato == impostore) {
             probabilita[j] = (unsigned short int) abs(30 + ((20 * astronauti) - (20 * (impostori-1))));
           }
@@ -205,28 +215,28 @@ static unsigned short int chiamata_emergenza(unsigned short int i) {
       }
       unsigned short int max = 0, giocatori_a_rischio[num_giocatori], num_giocatori_a_rischio = 0, indice_defenestrato = 0;
       for(int i = 0; i < num_giocatori; i++) {
-        giocatori_a_rischio[i] = 0;
+        giocatori_a_rischio[i] = 0; // Azzero l'array
       }
       for(int i = 0; i < num_giocatori; i++) {
         if(max < probabilita[i]) {
-          max = probabilita[i];
+          max = probabilita[i]; // Mi salvo la probabilità più alta
         }
       }
       for(int i = 0; i < num_giocatori; i++) {
-        if(probabilita[i] == max) {
-          giocatori_a_rischio[num_giocatori_a_rischio++] = i;
+        if(probabilita[i] == max) { // Controllo a chi appartiene la probabilità più alta
+          giocatori_a_rischio[num_giocatori_a_rischio++] = i; // Mi salvo l'indice/i
         }
       }
       indice_defenestrato = giocatori_a_rischio[rand()%num_giocatori_a_rischio];
       if(giocatori[indice_defenestrato].stato == astronauta) {
-        giocatori[indice_defenestrato].stato = defenestrato;
+        giocatori[indice_defenestrato].stato = defenestrato;  // Cambio stato giocatore
         printf(" Il giocatore %s non era un impostore\n", get_nome_giocatore(giocatori[indice_defenestrato].nome));
-        return 1;
+        return 1; // Ritorno 1 se il defenestrato è un astronauta
       }
       if(giocatori[indice_defenestrato].stato == impostore) {
-        giocatori[indice_defenestrato].stato = defenestrato;
+        giocatori[indice_defenestrato].stato = defenestrato;  // Cambio stato giocatore
         printf(" Il giocatore %s era un impostore\n", get_nome_giocatore(giocatori[indice_defenestrato].nome));
-        return 2;
+        return 2; // Ritorno 2 se il defenestrato è un impostore
       }
     }
     else {
@@ -241,19 +251,20 @@ static unsigned short int chiamata_emergenza(unsigned short int i) {
   else {
     printf(" La chiamata d'emergenza è già stata effettuata per questa stanza\n");
   }
-  return 0;
+  return 0; // Ritorno 0 se non è stato defenestrato nessuno per via delle condizioni della stanza e/o dei giocatori presenti
 }
 
+// Funzione che permette all'impostore di uccidere un astronauta presente nella stessa stanza
 static unsigned short int uccidi_astronauta(unsigned short int i) {
   unsigned short int contatore_astronauti = 0, scelta = 0;
   unsigned short int astronauti[num_giocatori], probabilita = 0;
   for(int j = 0; j < num_giocatori; j++) {
     if(giocatori[i].posizione == giocatori[j].posizione && giocatori[j].stato == astronauta) {
-      astronauti[contatore_astronauti++] = j;
+      astronauti[contatore_astronauti++] = j; // Mi salvo gli indici degli astronauti presenti nella stanza
     }
   }
   if(contatore_astronauti > 0) {
-    printf(" Gli astronauti presenti nella stanza %p\n", giocatori[i].posizione);
+    printf(" Gli astronauti presenti nella stanza %p\n", giocatori[i].posizione); // Mostro i presenti
     for(int j = 0; j < contatore_astronauti; j++) {
       printf("\t%d) per uccidere il giocatore %s\n", j, get_nome_giocatore(giocatori[astronauti[j]].nome));
     }
@@ -264,33 +275,35 @@ static unsigned short int uccidi_astronauta(unsigned short int i) {
         printf(" Valore non valido\n Per favore reinserisci un valore valido: ");
       }
       else {
-        giocatori[astronauti[scelta]].stato = assassinato;
+        giocatori[astronauti[scelta]].stato = assassinato;  // Cambio lo stato dell'astronauta scelto dall'impostore
         printf(" Il giocatore %s è stato assassinato\n", get_nome_giocatore(giocatori[astronauti[scelta]].nome));
       }
     } while(scelta >= contatore_astronauti || scelta < 0);
+    // Inizio con le probabilità di avvistamento da parte degli astronauti
     for(int i = 0; i < contatore_astronauti; i++) {
       if(astronauti[i] != scelta) {
-        probabilita += 50;
+        probabilita += 50;  // La probabilità aumenta del 50% per ogni astronauta presente vivo nella stessa stanza
       }
     }
     for(int j = 0; j < num_giocatori; j++) {
       if(giocatori[i].posizione -> stanza_precedente == giocatori[j].posizione && giocatori[j].stato == astronauta) {
-        probabilita += 20;
+        probabilita += 20;  // La probabilità aumenta del 20% per ogni astronauta presente vivo nella stanza precedente
       }
     }
     if((rand()%100) < probabilita) {
-      giocatori[i].stato = defenestrato;
+      giocatori[i].stato = defenestrato;  // Cambio stato giocatore
       printf(" Giocatore %s ti hanno scoperto!\n Sei stato defenestrato\n", get_nome_giocatore(giocatori[i].nome));
-      return 2;
+      return 2; // Ritorno 2 se sia l'impostore (defenestrato) che l'astronauta (assassinato) sono fuori dal gioco
     }
-    return 1;
+    return 1; // Ritorno 1 se l'impostore ha assassinato l'astronauta senza farsi scoprire
   }
   else {
     printf(" Non sono presenti astronauti nella stanza %p\n", giocatori[i].posizione);
   }
-  return 0;
+  return 0; // Ritorno 0 se non sono presenti astronauti da assassinare nella stessa stanza
 }
 
+// Funzione che permette all'impostore di spostarsi in un'altra stanza casuale di tipo botola (se possibile)
 static void usa_botola(unsigned short int i) {
   unsigned short int contatore_botole = 0;
   unsigned short int indice_casuale = 0;
@@ -327,18 +340,20 @@ static void usa_botola(unsigned short int i) {
   }
 }
 
+// Funzione che permette all'impostore di cambiare lo stato di una stanza di tipo quest_semplice/quest_complicata a vuota
 static void sabotaggio(unsigned short int i) {
   if(giocatori[i].posizione -> tipo == quest_semplice || giocatori[i].posizione -> tipo == quest_complicata) {
-    giocatori[i].posizione -> tipo = vuota;
-    printf(" Giocatore %s hai sabotato la stanza %p, ora è di tipo %s", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione, get_tipo_stanza(giocatori[i].posizione -> tipo));
+    giocatori[i].posizione -> tipo = vuota; // Cambio lo stato della stanza
+    printf(" Giocatore %s hai sabotato la stanza %p, ora è di tipo %s\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione, get_tipo_stanza(giocatori[i].posizione -> tipo));
   }
   else {
     printf(" La stanza %p è di tipo %s e non possiede quest\n", giocatori[i].posizione, get_tipo_stanza(giocatori[i].posizione -> tipo));
   }
 }
 
+// Funzione che permette di impostare il gioco da parte degli utenti
 void imposta_gioco() {
-  termina_gioco();
+  termina_gioco();  // Dealloco tutto in caso l'utente reinserisce la voce 1 nel menù principale anziché la voce 2 (gioca)
   unsigned short int scelta = 0, colori[10], contatore_impostori = 0, probabilita = 0;
   printf(" Inserisci il numero dei giocatori per questa partita: ");
   do {
@@ -347,9 +362,10 @@ void imposta_gioco() {
       printf(" Massimo 10 giocatori e minimo 4\n Per favore reinserisci un valore valido: ");
     }
   } while(num_giocatori < 4 || num_giocatori > 10);
-  giocatori = (struct Giocatore *) calloc(num_giocatori, sizeof(struct Giocatore));
-  stanza_inizio = (struct Stanza *) malloc(sizeof(struct Stanza));
-  lista_stanze = (struct Stanza *) malloc(sizeof(struct Stanza));
+  giocatori = (struct Giocatore *) calloc(num_giocatori, sizeof(struct Giocatore)); // Alloco nell'heap l'array dei giocatori
+  stanza_inizio = (struct Stanza *) malloc(sizeof(struct Stanza));  // Alloco nell'heap un puntatore stanza
+  lista_stanze = (struct Stanza *) malloc(sizeof(struct Stanza)); // Alloco nell'heap un puntatore stanza
+  // Preparo la stanza d'inizio
   stanza_inizio -> avanti = NULL;
   stanza_inizio -> destra = NULL;
   stanza_inizio -> sinistra = NULL;
@@ -368,9 +384,10 @@ void imposta_gioco() {
   else {
     stanza_inizio -> tipo = vuota;
   }
-  lista_stanze -> avanti = stanza_inizio;
-  conta_stanze++;
-  mischia(10, colori);
+  lista_stanze -> avanti = stanza_inizio; // Salvo la stanza d'inizio nella lista delle stanze
+  conta_stanze++; // Incremento il contatore delle stanze
+  mischia(10, colori);  // Mischio un array di 10 elementi (short int senza segno da 0 a 9)
+  // Popolo l'array giocatori
   for(int i = 0; i < num_giocatori; i++) {
     giocatori[i].nome = colori[i];
     if(num_giocatori >= 4 && num_giocatori < 6) {
@@ -400,10 +417,10 @@ void imposta_gioco() {
         giocatori[i].stato = astronauta;
       }
     }
-    giocatori[i].posizione = stanza_inizio;
+    giocatori[i].posizione = stanza_inizio; // I giocatori partono tutti dalla stessa stanza
   }
-  if(!contatore_impostori) {
-    giocatori[rand()%num_giocatori].stato = impostore;
+  if(!contatore_impostori) {  // Se non si sono generati impostori in precedenza
+    giocatori[rand()%num_giocatori].stato = impostore;  // Assegno il ruolo di impostore a un giocatore casuale
   }
   printf(" Inserisci il numero delle quest che dovranno completare gli astronauti: ");
   do {
@@ -426,10 +443,11 @@ void imposta_gioco() {
   } while(scelta != 2);
 }
 
+// Funzione che permette di giocare da parte degli utenti
 void gioca() {
   unsigned short int turni[num_giocatori], contatore_impostori = 0, contatore_astronauti = 0;
   unsigned short int scelta = 0, quest_finite = 0, contatore_escludi_defunti = 0, esito_morte = 0;
-  for(int i = 0; i < num_giocatori; i++) {
+  for(int i = 0; i < num_giocatori; i++) {  // Conto gli astronauti e gli impostori
     if(giocatori[i].stato == astronauta) {
       contatore_astronauti++;
     }
@@ -438,25 +456,27 @@ void gioca() {
     }
   }
   do {
-    mischia(num_giocatori, turni);
+    mischia(num_giocatori, turni);  // Mischio l'array dei turni
     printf(" I turni dei giocatori:\n");
     contatore_escludi_defunti = 0;
     for(int i = 0; i < num_giocatori; i++) {
-      if(giocatori[turni[i]].stato != assassinato && giocatori[turni[i]].stato != defenestrato) {
+      if(giocatori[turni[i]].stato != assassinato && giocatori[turni[i]].stato != defenestrato) { // Escludo i giocatori fuori dal gioco
         printf("\tIl giocatore %s è il %d° a giocare\n", get_nome_giocatore(giocatori[turni[i]].nome), ++contatore_escludi_defunti);
       }
     }
-    // rana
+/*
     printf(" Le stanze:\n");
     for(int i = 0; i < conta_stanze; i++) {
-      printf("%p\n", lista_stanze[i].avanti);
+      printf("\t%p\n", lista_stanze[i].avanti);
     }
+*/
+  // Ciclo fino a quando i contatori degli astronauti e quello degli impostori è maggiore di 0 e i minore del numero dei giocatori (per rimischiare i turni)
     for(int i = 0; i < num_giocatori && (quest_finite < quest_da_finire && contatore_impostori > 0 && contatore_astronauti > 0); i++) {
-      if(giocatori[turni[i]].stato == astronauta) {
+      if(giocatori[turni[i]].stato == astronauta) { // Se il giocatore che sta giocando è un astronauta
         printf(" Giocatore %s ti trovi nella stanza %p di tipo %s\n", get_nome_giocatore(giocatori[turni[i]].nome), giocatori[turni[i]].posizione, get_tipo_stanza(giocatori[turni[i]].posizione -> tipo));
         printf(" I giocatori presenti nella stanza sono:\n");
         for(int j = 0; j < num_giocatori; j++) {
-          if((turni[i] != j) && giocatori[j].posizione == giocatori[turni[i]].posizione) {
+          if((turni[i] != j) && giocatori[j].posizione == giocatori[turni[i]].posizione) {  // Mostro i giocatori nella stessa stanza
             if(giocatori[j].stato != defenestrato) {
               if(giocatori[j].stato == assassinato) {
                 printf("\tGiocatore %s (%s)\n", get_nome_giocatore(giocatori[j].nome), get_stato_giocatore(giocatori[j].stato));
@@ -468,6 +488,7 @@ void gioca() {
           }
         }
         printf(" Giocatore %s cosa vuoi fare?\n", get_nome_giocatore(giocatori[turni[i]].nome));
+        // Menù di scelta degli astronauti
         do {
           printf("  1) Avanza\n  2) Esegui quest\n  3) Chiamata di Emergenza\n");
           printf(" Inserisci una voce: ");
@@ -493,10 +514,10 @@ void gioca() {
           }
         } while(scelta != 1 && scelta != 2 && scelta != 3);
       }
-      if(giocatori[turni[i]].stato == impostore) {
+      if(giocatori[turni[i]].stato == impostore) {  // Se il giocatore che sta giocando è un impostore
         printf(" Giocatore %s ti trovi nella stanza %p di tipo %s\n", get_nome_giocatore(giocatori[turni[i]].nome), giocatori[turni[i]].posizione, get_tipo_stanza(giocatori[turni[i]].posizione -> tipo));
         printf(" I giocatori presenti nella stanza sono:\n");
-        for(int j = 0; j < num_giocatori; j++) {
+        for(int j = 0; j < num_giocatori; j++) {  // Mostro i giocatori nella stessa stanza e il loro stato (gli impostori si conoscono)
           if((turni[i] != j) && giocatori[j].posizione == giocatori[turni[i]].posizione) {
             if(giocatori[j].stato != defenestrato) {
               printf("\tGiocatore %s (%s)\n", get_nome_giocatore(giocatori[j].nome), get_stato_giocatore(giocatori[j].stato));
@@ -504,6 +525,7 @@ void gioca() {
           }
         }
         printf(" Giocatore %s cosa vuoi fare?\n", get_nome_giocatore(giocatori[turni[i]].nome));
+        // Menù di scelta degli impostori
         do {
           printf("  1) Avanza\n  2) Chiamata di emergenza\n  3) Uccidi astronauta\n  4) Usa botola\n  5) Sabota\n");
           printf(" Inserisci una voce: ");
@@ -528,6 +550,7 @@ void gioca() {
               }
               if(esito_morte == 2) {
                 contatore_impostori--;
+                contatore_astronauti--;
               }
               esito_morte = 0;
               break;
@@ -539,7 +562,7 @@ void gioca() {
           }
         } while(scelta != 1 && scelta != 2 && scelta != 3 && scelta != 4 && scelta != 5);
       }
-    }
+    } // Il ciclo si conclude se i contatori di uno dei due (astronauti o impostori) arriva a 0 e se gli astronauti riescono a terminare le quest
   } while(quest_finite < quest_da_finire && contatore_impostori > 0 && contatore_astronauti > 0);
   if(quest_finite >= quest_da_finire || contatore_impostori == 0) {
     printf(" Gli astronauti hanno vinto!!\n");
@@ -547,7 +570,7 @@ void gioca() {
   else {
     printf(" Gli impostori hanno vinto!!\n");
   }
-  termina_gioco();
+  termina_gioco();  // Dealloco i puntatori nell'heap
 }
 
 void termina_gioco() {
