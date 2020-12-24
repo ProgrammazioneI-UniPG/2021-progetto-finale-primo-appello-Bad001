@@ -126,6 +126,7 @@ static void avanza(unsigned short int i) {
           giocatori[i].posizione = giocatori[i].posizione -> avanti;
           giocatori[i].posizione -> stanza_precedente = tmp;
         }
+        printf(" Giocatore %s ti sei spostato in avanti nella stanza %p\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione);
         break;
       case 2:
         if(giocatori[i].posizione -> destra == NULL) {
@@ -142,6 +143,7 @@ static void avanza(unsigned short int i) {
           giocatori[i].posizione = giocatori[i].posizione -> destra;
           giocatori[i].posizione -> stanza_precedente = tmp;
         }
+        printf(" Giocatore %s ti sei spostato a destra nella stanza %p\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione);
         break;
       case 3:
         if(giocatori[i].posizione -> sinistra == NULL) {
@@ -158,6 +160,7 @@ static void avanza(unsigned short int i) {
           giocatori[i].posizione = giocatori[i].posizione -> sinistra;
           giocatori[i].posizione -> stanza_precedente = tmp;
         }
+        printf(" Giocatore %s ti sei spostato a sinistra nella stanza %p\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione);
         break;
       case 4: printf(" Sei rimasto nella stanza %p di tipo %s\n", giocatori[i].posizione, get_tipo_stanza(giocatori[i].posizione -> tipo));
         break;
@@ -258,7 +261,7 @@ static unsigned short int chiamata_emergenza(unsigned short int i) {
 
 // Funzione che permette all'impostore di uccidere un astronauta presente nella stessa stanza
 static unsigned short int uccidi_astronauta(unsigned short int i) {
-  unsigned short int contatore_astronauti = 0, scelta = 0;
+  unsigned short int contatore_astronauti = 0, scelta = 11; // Scelta = 11 per evitare problemi di buffer (es. scrivo ciao mi prendeva il valore 0)
   unsigned short int astronauti[num_giocatori], probabilita = 0;
   for(int j = 0; j < num_giocatori; j++) {
     if(giocatori[i].posizione == giocatori[j].posizione && giocatori[j].stato == astronauta) {
@@ -270,11 +273,15 @@ static unsigned short int uccidi_astronauta(unsigned short int i) {
     for(int j = 0; j < contatore_astronauti; j++) {
       printf("\t%d) per uccidere il giocatore %s\n", j, get_nome_giocatore(giocatori[astronauti[j]].nome));
     }
+    printf("\t10) per non uccidere nessuno\n");
     printf(" Inserisci il corrispondente numero: ");
     do {
       scanf("%hu", &scelta);
       while (getchar()!='\n');  // Svuoto il buffer dello standard input
-      if(scelta >= contatore_astronauti || scelta < 0) {
+      if(scelta == 10) {
+        return 0;
+      }
+      else if(scelta >= contatore_astronauti || scelta < 0) {
         printf(" Valore non valido\n Per favore reinserisci un valore valido: ");
       }
       else {
@@ -307,7 +314,7 @@ static unsigned short int uccidi_astronauta(unsigned short int i) {
 }
 
 // Funzione che permette all'impostore di spostarsi in un'altra stanza casuale di tipo botola (se possibile)
-static void usa_botola(unsigned short int i) {
+static unsigned short int usa_botola(unsigned short int i) {
   unsigned short int contatore_botole = 0;
   unsigned short int indice_casuale = 0;
   unsigned short int conta_stanze_botola = 0;
@@ -334,6 +341,8 @@ static void usa_botola(unsigned short int i) {
       giocatori[i].posizione = lista_stanze_botola[indice_casuale].avanti;  // Sposto l'impostore
       printf(" Giocatore %s ti sei spostato nella stanza %p\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione);
     }
+    free(lista_stanze_botola);  // Dealloco lista_stanze_botola
+    return 1;
   }
   else {
     if(conta_stanze < 2) {  // Se la stanza è una sola significa che l'impostore si trova nella stanza iniziale che è di tipo botola
@@ -344,17 +353,20 @@ static void usa_botola(unsigned short int i) {
     }
   }
   free(lista_stanze_botola);  // Dealloco lista_stanze_botola
+  return 0;
 }
 
 // Funzione che permette all'impostore di cambiare lo stato di una stanza di tipo quest_semplice/quest_complicata a vuota
-static void sabotaggio(unsigned short int i) {
+static unsigned short int sabotaggio(unsigned short int i) {
   if(giocatori[i].posizione -> tipo == quest_semplice || giocatori[i].posizione -> tipo == quest_complicata) {
     giocatori[i].posizione -> tipo = vuota; // Cambio lo stato della stanza
     printf(" Giocatore %s hai sabotato la stanza %p, ora è di tipo %s\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione, get_tipo_stanza(giocatori[i].posizione -> tipo));
+    return 1; // Se ritorna 1 significa che la stanza è stata sabotata correttamente
   }
   else {
     printf(" La stanza %p è di tipo %s e non possiede quest\n", giocatori[i].posizione, get_tipo_stanza(giocatori[i].posizione -> tipo));
   }
+  return 0; // Se ritorno 0 significa che la stanza non possiede quest
 }
 
 // Funzione che permette di impostare il gioco da parte degli utenti
@@ -455,7 +467,7 @@ void imposta_gioco() {
 // Funzione che permette di giocare da parte degli utenti
 void gioca() {
   unsigned short int turni[num_giocatori], contatore_impostori = 0, contatore_astronauti = 0;
-  unsigned short int scelta = 0, quest_finite = 0, contatore_escludi_defunti = 0, esito_morte = 0;
+  unsigned short int scelta = 0, quest_finite = 0, contatore_escludi_defunti = 0, esito = 0;
   for(int i = 0; i < num_giocatori; i++) {  // Conto gli astronauti e gli impostori
     if(giocatori[i].stato == astronauta) {
       contatore_astronauti++;
@@ -474,7 +486,7 @@ void gioca() {
         printf("\tIl giocatore %s è il %d° a giocare\n", get_nome_giocatore(giocatori[turni[i]].nome), ++contatore_escludi_defunti);
       }
     }
-    printf(" Memorizzate i turni, dopodiché premere invio per ricominciare il giro...");
+    printf(" Memorizzate i turni, dopodiché premere invio per cominciare il giro...");
     getchar();
     system("clear");  // Pulisco lo schermo
     // Ciclo fino a quando i contatori degli astronauti e quello degli impostori è maggiore di 0 e i minore del numero dei giocatori (per rimischiare i turni)
@@ -505,25 +517,37 @@ void gioca() {
             case 1: avanza(turni[i]);
               break;
             case 2:
-              quest_finite += esegui_quest(turni[i]);
+              esito = esegui_quest(turni[i]);
+              if(esito != 0) {
+                quest_finite += esito;
+              }
+              else {
+                scelta = 0;
+              }
+              esito = 0;
               printf(" Quest rimanenti: %hu\n", quest_da_finire-quest_finite);
               break;
             case 3:
-              esito_morte = chiamata_emergenza(turni[i]);
-              if(esito_morte == 1) {
+              esito = chiamata_emergenza(turni[i]);
+              if(esito == 1) {
                 contatore_astronauti--;
               }
-              if(esito_morte == 2) {
+              else if(esito == 2) {
                 contatore_impostori--;
               }
-              esito_morte = 0;
+              else {
+                scelta = 0;
+              }
+              esito = 0;
               break;
             default: printf(" Voce del menu inesistente\n");
           }
         } while(scelta != 1 && scelta != 2 && scelta != 3);
-        printf(" Giocatore %s premi invio e cedi il computer al prossimo giocatore...", get_nome_giocatore(giocatori[turni[i]].nome));
-        getchar();
-        system("clear");  // Pulisco lo schermo
+        if(quest_finite < quest_da_finire && contatore_impostori > 0 && contatore_astronauti > 0) {
+          printf(" Giocatore %s premi invio e cedi il computer al prossimo giocatore...", get_nome_giocatore(giocatori[turni[i]].nome));
+          getchar();
+          system("clear");  // Pulisco lo schermo
+        }
       }
       if(giocatori[turni[i]].stato == impostore) {  // Se il giocatore che sta giocando è un impostore
         printf(" Giocatore %s ti trovi nella stanza %p di tipo %s\n", get_nome_giocatore(giocatori[turni[i]].nome), giocatori[turni[i]].posizione, get_tipo_stanza(giocatori[turni[i]].posizione -> tipo));
@@ -546,44 +570,91 @@ void gioca() {
             case 1: avanza(turni[i]);
               break;
             case 2:
-              esito_morte = chiamata_emergenza(turni[i]);
-              if(esito_morte == 1) {
+              esito = chiamata_emergenza(turni[i]);
+              if(esito == 1) {
                 contatore_astronauti--;
               }
-              if(esito_morte == 2) {
+              else if(esito == 2) {
                 contatore_impostori--;
               }
-              esito_morte = 0;
+              else {
+                scelta = 0;
+              }
+              esito = 0;
               break;
             case 3:
-              esito_morte = uccidi_astronauta(turni[i]);
-              if(esito_morte == 1) {
+              esito = uccidi_astronauta(turni[i]);
+              if(esito == 1) {
                 contatore_astronauti--;
               }
-              if(esito_morte == 2) {
+              else if(esito == 2) {
                 contatore_impostori--;
                 contatore_astronauti--;
               }
-              esito_morte = 0;
+              else {
+                scelta = 0;
+              }
+              esito = 0;
               break;
-            case 4: usa_botola(turni[i]);
+            case 4:
+              if(!usa_botola(turni[i])) {
+                scelta = 0;
+              }
               break;
-            case 5: sabotaggio(turni[i]);
+            case 5:
+              if(!sabotaggio(turni[i])) {
+                scelta = 0;
+              }
               break;
             default: printf(" Voce del menu inesistente\n");
           }
         } while(scelta != 1 && scelta != 2 && scelta != 3 && scelta != 4 && scelta != 5);
-        printf(" Giocatore %s premi invio e cedi il computer al prossimo giocatore...", get_nome_giocatore(giocatori[turni[i]].nome));
-        getchar();
-        system("clear");  // Pulisco lo schermo
+        if(quest_finite < quest_da_finire && contatore_impostori > 0 && contatore_astronauti > 0) {
+          printf(" Giocatore %s premi invio e cedi il computer al prossimo giocatore...", get_nome_giocatore(giocatori[turni[i]].nome));
+          getchar();
+          system("clear");  // Pulisco lo schermo
+        }
       }
     } // Il ciclo si conclude se i contatori di uno dei due (astronauti o impostori) arriva a 0 e se gli astronauti riescono a terminare le quest
   } while(quest_finite < quest_da_finire && contatore_impostori > 0 && contatore_astronauti > 0);
   if(quest_finite >= quest_da_finire || contatore_impostori == 0) {
-    printf(" Gli astronauti hanno vinto!!\n");
+    printf("                         _______________________\n");
+    printf("                       //   __..--~~~~--..__    \\\\\n");
+    printf("                      ||___/  |  |   |  |   \\ __/ |\n");
+    printf("      Vittoria        ||  /   ___________    \\    |\n");
+    printf("    [ASTRONAUTI]      ||_/   /.......... \\    |   |\n");
+    printf("                      | |   /..........   \\   |   |\n");
+    printf(" _____________________| |  /...........    \\  |   |________________\n");
+    printf("  ;   . . .   .       |_| |...........      | |   | .''.\"...  ... .\n");
+    printf(" ___   ..~.         _.' | |..........       | |   |         . ~\n");
+    printf("  .      '     .   / \\_.| |..........       | |   |\\ ~.   ._..---._\n");
+    printf("                  |. /| \\ \\............     / /   |/ .    /\\      /\\\n");
+    printf("    '\"\"\" ... ~~~  | \\|| _\\ \\............   / /-.__|      // ~-._./ -\\\n");
+    printf("  ..~             |  |_.~\\\\ \\_____________/ /// '.|     /__       __.\\\n");
+    printf("  ___   ..~.      |_.~   .\\\\_______________//   _ ~-.  ~~~~..  ~~~~~.\n");
+    printf("                 .~ -.     \\__.---.________/   ______\\.\n");
+    getchar();
+    system("clear");  // Pulisco lo schermo
   }
   else {
+    printf("                         _______________________\n");
+    printf("                       //   __..--~~~~--..__    \\\\\n");
+    printf("                      ||___/  |  |   |  |   \\ __/ |\n");
+    printf("      Vittoria        ||  /   ___________    \\    |\n");
+    printf("     [IMPOSTORI]      ||_/   /.......... \\    |   |\n");
+    printf("                      | |   /..........   \\   |   |\n");
+    printf(" _____________________| |  /...........    \\  |   |________________\n");
+    printf("  ;   . . .   .       |_| |...........  \033[1;31m(0)\033[0m | |   | .''.\"...  ... .\n");
+    printf(" ___   ..~.         _.' | |..........       | |   |         . ~\n");
+    printf("  .      '     .   / \\_.| |..........       | |   |\\ ~.   ._..---._\n");
+    printf("                  |. /| \\ \\............     / /   |/ .    /\\      /\\\n");
+    printf("    '\"\"\" ... ~~~  | \\|| _\\ \\............   / /-.__|      // ~-._./ -\\\n");
+    printf("  ..~             |  |_.~\\\\ \\_____________/ /// '.|     /__       __.\\\n");
+    printf("  ___   ..~.      |_.~   .\\\\_______________//   _ ~-.  ~~~~..  ~~~~~.\n");
+    printf("                 .~ -.     \\__.---.________/   ______\\.\n");
     printf(" Gli impostori hanno vinto!!\n");
+    getchar();
+    system("clear");  // Pulisco lo schermo
   }
   termina_gioco();  // Dealloco i puntatori nell'heap
 }
