@@ -652,7 +652,6 @@ void gioca() {
     printf("  ..~             |  |_.~\\\\ \\_____________/ /// '.|     /__       __.\\\n");
     printf("  ___   ..~.      |_.~   .\\\\_______________//   _ ~-.  ~~~~..  ~~~~~.\n");
     printf("                 .~ -.     \\__.---.________/   ______\\.\n");
-    printf(" Gli impostori hanno vinto!!\n");
     getchar();
     system("clear");  // Pulisco lo schermo
   }
