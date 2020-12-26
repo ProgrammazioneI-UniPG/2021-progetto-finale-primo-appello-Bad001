@@ -450,7 +450,7 @@ void imposta_gioco() {
     }
   } while(quest_da_finire < num_giocatori);
   do {
-    printf("  1) Stampa i giocatori\n  2) Inzia il gioco\n");
+    printf("  1) Stampa i giocatori\n  2) Inizia il gioco\n");
     printf(" Inserisci una voce: ");
     scanf("%hu", &scelta);
     while (getchar()!='\n');  // Svuoto il buffer dello standard input
@@ -525,7 +525,8 @@ void gioca() {
                 scelta = 0;
               }
               esito = 0;
-              printf(" Quest rimanenti: %hu\n", quest_da_finire-quest_finite);
+              // L'espressione condizionale è per evitare che la sottrazione torni un valore negativo
+              printf(" Quest rimanenti: %hu\n", quest_finite > quest_da_finire ? 0 : quest_da_finire-quest_finite);
               break;
             case 3:
               esito = chiamata_emergenza(turni[i]);
