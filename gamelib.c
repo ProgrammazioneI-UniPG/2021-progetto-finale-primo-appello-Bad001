@@ -102,7 +102,7 @@ static void crea_stanza(unsigned short int i) {
 // Funzione che permette lo spostamento del giocatore
 static void avanza(unsigned short int i) {
   unsigned short int scelta = 0;
-  struct Stanza* tmp;
+  struct Stanza* tmp = (struct Stanza *) malloc(sizeof(struct Stanza));
   printf(" In quale direzione?\n");
   do {
     printf("  1) Avanti\n  2) Destra\n  3) Sinistra\n  4) Rimani fermo\n");
@@ -166,6 +166,7 @@ static void avanza(unsigned short int i) {
       default: printf(" Voce del menu inesistente\n");
     }
   } while(scelta != 1 && scelta != 2 && scelta != 3 && scelta != 4);
+  free(tmp);
 }
 
 // Funzione che fa eseguire una quest (se possibile) al giocatore che l'ha richiamata
@@ -352,7 +353,8 @@ static unsigned short int usa_botola(unsigned short int i) {
       printf(" La stanza %p non è di tipo botola, ma di tipo %s\n", giocatori[i].posizione, get_tipo_stanza(giocatori[i].posizione -> tipo));
     }
   }
-  free(lista_stanze_botola);  // Dealloco lista_stanze_botola
+  // Dealloco lista_stanze_botola
+  free(lista_stanze_botola);
   return 0;
 }
 
@@ -439,6 +441,8 @@ void imposta_gioco() {
     }
     giocatori[i].posizione = stanza_inizio; // I giocatori partono tutti dalla stessa stanza
   }
+  free(stanza_inizio);
+  stanza_inizio = NULL;
   if(!contatore_impostori) {  // Se non si sono generati impostori in precedenza
     giocatori[rand()%num_giocatori].stato = impostore;  // Assegno il ruolo di impostore a un giocatore casuale
   }
