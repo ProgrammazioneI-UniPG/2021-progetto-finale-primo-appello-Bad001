@@ -102,7 +102,6 @@ static void crea_stanza(unsigned short int i) {
 // Funzione che permette lo spostamento del giocatore
 static void avanza(unsigned short int i) {
   unsigned short int scelta = 0;
-  struct Stanza* tmp;
   printf(" In quale direzione?\n");
   do {
     printf("  1) Avanti\n  2) Destra\n  3) Sinistra\n  4) Rimani fermo\n");
@@ -112,52 +111,40 @@ static void avanza(unsigned short int i) {
     switch(scelta) {
       case 1:
         if(giocatori[i].posizione -> avanti == NULL) {
-          tmp = giocatori[i].posizione;
-          // Do il nuovo indirizzo
           giocatori[i].posizione -> avanti = (struct Stanza *) malloc(sizeof(struct Stanza));
-          // Mi sposto effettivamente
+          giocatori[i].posizione -> avanti -> stanza_precedente = giocatori[i].posizione;
           giocatori[i].posizione = giocatori[i].posizione -> avanti;
-          giocatori[i].posizione -> stanza_precedente = tmp;
           crea_stanza(i);
         }
         else {
-          tmp = giocatori[i].posizione;
+          giocatori[i].posizione -> avanti -> stanza_precedente = giocatori[i].posizione;
           giocatori[i].posizione = giocatori[i].posizione -> avanti;
-          giocatori[i].posizione -> stanza_precedente = tmp;
         }
         printf(" Giocatore %s ti sei spostato in avanti nella stanza %p\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione);
         break;
       case 2:
         if(giocatori[i].posizione -> destra == NULL) {
-          tmp = giocatori[i].posizione;
-          // Do il nuovo indirizzo
           giocatori[i].posizione -> destra = (struct Stanza *) malloc(sizeof(struct Stanza));
-          // Mi sposto effettivamente
+          giocatori[i].posizione -> destra -> stanza_precedente = giocatori[i].posizione;
           giocatori[i].posizione = giocatori[i].posizione -> destra;
-          giocatori[i].posizione -> stanza_precedente = tmp;
           crea_stanza(i);
         }
         else {
-          tmp = giocatori[i].posizione;
+          giocatori[i].posizione -> destra -> stanza_precedente = giocatori[i].posizione;
           giocatori[i].posizione = giocatori[i].posizione -> destra;
-          giocatori[i].posizione -> stanza_precedente = tmp;
         }
         printf(" Giocatore %s ti sei spostato a destra nella stanza %p\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione);
         break;
-      case 3:
+        case 3:
         if(giocatori[i].posizione -> sinistra == NULL) {
-          tmp = giocatori[i].posizione;
-          // Do il nuovo indirizzo
           giocatori[i].posizione -> sinistra = (struct Stanza *) malloc(sizeof(struct Stanza));
-          // Mi sposto effettivamente
+          giocatori[i].posizione -> sinistra -> stanza_precedente = giocatori[i].posizione;
           giocatori[i].posizione = giocatori[i].posizione -> sinistra;
-          giocatori[i].posizione -> stanza_precedente = tmp;
           crea_stanza(i);
         }
         else {
-          tmp = giocatori[i].posizione;
+          giocatori[i].posizione -> sinistra -> stanza_precedente = giocatori[i].posizione;
           giocatori[i].posizione = giocatori[i].posizione -> sinistra;
-          giocatori[i].posizione -> stanza_precedente = tmp;
         }
         printf(" Giocatore %s ti sei spostato a sinistra nella stanza %p\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione);
         break;
@@ -353,6 +340,7 @@ static unsigned short int usa_botola(unsigned short int i) {
     }
   }
   free(lista_stanze_botola);  // Dealloco lista_stanze_botola
+  lista_stanze_botola = NULL;
   return 0;
 }
 
@@ -492,6 +480,10 @@ void gioca() {
     system("clear");  // Pulisco lo schermo
     // Ciclo fino a quando i contatori degli astronauti e quello degli impostori è maggiore di 0 e i minore del numero dei giocatori (per rimischiare i turni)
     for(int i = 0; i < num_giocatori && (quest_finite < quest_da_finire && contatore_impostori > 0 && contatore_astronauti > 0); i++) {
+      printf(" Le stanze:\n");
+      for(int i = 0; i < conta_stanze; i++) {
+        printf("\t%p\n", lista_stanze[i].node);
+      }
       if(giocatori[turni[i]].stato == astronauta) { // Se il giocatore che sta giocando è un astronauta
         printf(" Giocatore %s ti trovi nella stanza %p di tipo %s\n", get_nome_giocatore(giocatori[turni[i]].nome), giocatori[turni[i]].posizione, get_tipo_stanza(giocatori[turni[i]].posizione -> tipo));
         printf(" I giocatori presenti nella stanza sono:\n");
