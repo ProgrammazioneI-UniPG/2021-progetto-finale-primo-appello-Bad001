@@ -3,7 +3,6 @@
 #include "gamelib.h"
 
 // Variabili globali visibili solo al file corrente
-static struct Stanza* stanza_inizio;
 static struct Stanza* lista_stanze;
 static struct Giocatore* giocatori;
 static unsigned short int quest_da_finire, num_giocatori, conta_stanze;  // Conta stanze è il numero totale delle stanze
@@ -352,7 +351,8 @@ static unsigned short int usa_botola(unsigned short int i) {
       printf(" La stanza %p non è di tipo botola, ma di tipo %s\n", giocatori[i].posizione, get_tipo_stanza(giocatori[i].posizione -> tipo));
     }
   }
-  free(lista_stanze_botola);  // Dealloco lista_stanze_botola
+  // Dealloco lista_stanze_botola
+  free(lista_stanze_botola);
   return 0;
 }
 
@@ -372,6 +372,7 @@ static unsigned short int sabotaggio(unsigned short int i) {
 // Funzione che permette di impostare il gioco da parte degli utenti
 void imposta_gioco() {
   termina_gioco();  // Dealloco tutto in caso l'utente reinserisce la voce 1 nel menù principale anziché la voce 2 (gioca)
+  struct Stanza* stanza_inizio;
   unsigned short int scelta = 0, colori[10], contatore_impostori = 0, probabilita = 0;
   printf(" Inserisci il numero dei giocatori per questa partita: ");
   do {
@@ -438,6 +439,8 @@ void imposta_gioco() {
     }
     giocatori[i].posizione = stanza_inizio; // I giocatori partono tutti dalla stessa stanza
   }
+  free(stanza_inizio);
+  stanza_inizio = NULL;
   if(!contatore_impostori) {  // Se non si sono generati impostori in precedenza
     giocatori[rand()%num_giocatori].stato = impostore;  // Assegno il ruolo di impostore a un giocatore casuale
   }
@@ -660,12 +663,12 @@ void gioca() {
 }
 
 void termina_gioco() {
-  giocatori = NULL; // Per evitare un memory leak essendo stanza_inizio e lista_stanze puntatori uguali
-  stanza_inizio = NULL;
-  lista_stanze = NULL;
-  free(giocatori);
-  free(stanza_inizio);
-  free(lista_stanze);
+  if(lista_stanze != NULL && giocatori != NULL) {
+    free(lista_stanze);
+    lista_stanze = NULL;
+    free(giocatori);
+    giocatori = NULL;
+  }
   quest_da_finire = 0;
   num_giocatori = 0;
   conta_stanze = 0;
