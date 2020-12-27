@@ -392,6 +392,7 @@ void imposta_gioco() {
   else {
     stanza_inizio -> tipo = vuota;
   }
+  conta_stanze = 0;
   lista_stanze -> node = (struct Stanza *) malloc(sizeof(struct Stanza));
   lista_stanze -> node = stanza_inizio; // Salvo la stanza d'inizio nella lista delle stanze
   conta_stanze++; // Incremento il contatore delle stanze
@@ -655,8 +656,12 @@ void gioca() {
 
 void termina_gioco() {
   if(lista_stanze != NULL && giocatori != NULL) {
-    free(lista_stanze);
-    lista_stanze = NULL;
+    for(int i = 0; i < conta_stanze; i++) {
+      if(lista_stanze[i].node != NULL) {
+        free(lista_stanze[i].node);
+        lista_stanze[i].node = NULL;
+      }
+    }
     free(giocatori);
     giocatori = NULL;
   }
