@@ -392,6 +392,7 @@ void imposta_gioco() {
   else {
     stanza_inizio -> tipo = vuota;
   }
+  lista_stanze -> node = (struct Stanza *) malloc(sizeof(struct Stanza));
   lista_stanze -> node = stanza_inizio; // Salvo la stanza d'inizio nella lista delle stanze
   conta_stanze++; // Incremento il contatore delle stanze
   mischia(10, colori);  // Mischio un array di 10 elementi (short int senza segno da 0 a 9)
