@@ -102,7 +102,7 @@ static void crea_stanza(unsigned short int i) {
 // Funzione che permette lo spostamento del giocatore
 static void avanza(unsigned short int i) {
   unsigned short int scelta = 0;
-  struct Stanza* tmp;
+  struct Stanza* tmp = (struct Stanza *) malloc(sizeof(struct Stanza));
   printf(" In quale direzione?\n");
   do {
     printf("  1) Avanti\n  2) Destra\n  3) Sinistra\n  4) Rimani fermo\n");
@@ -166,6 +166,7 @@ static void avanza(unsigned short int i) {
       default: printf(" Voce del menu inesistente\n");
     }
   } while(scelta != 1 && scelta != 2 && scelta != 3 && scelta != 4);
+  free(tmp);
 }
 
 // Funzione che fa eseguire una quest (se possibile) al giocatore che l'ha richiamata
