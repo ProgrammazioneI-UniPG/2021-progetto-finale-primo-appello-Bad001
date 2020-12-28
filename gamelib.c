@@ -75,28 +75,54 @@ static void inizia_gioco() {
 }
 
 // Funzione che acquisisce l'indice del giocatore attuale creando la stanza appena scoperta
-static void crea_stanza(unsigned short int i) {
+static void crea_stanza(unsigned short int i, struct Stanza * stanza_inizio) {
   unsigned short int probabilita = 0;
-  giocatori[i].posizione -> destra = NULL;
-  giocatori[i].posizione -> avanti = NULL;
-  giocatori[i].posizione -> sinistra = NULL;
-  giocatori[i].posizione -> emergenza_chiamata = non_effettuata;
-  probabilita = rand() % 100;
-  if(probabilita < 15) {
-    giocatori[i].posizione -> tipo = quest_complicata;
-  }
-  else if(probabilita >= 15 && probabilita < 40) {
-    giocatori[i].posizione -> tipo = botola;
-  }
-  else if(probabilita >= 40 && probabilita < 70) {
-    giocatori[i].posizione -> tipo = quest_semplice;
+  if(conta_stanze == 0) {
+    // Preparo la stanza d'inizio
+    stanza_inizio -> avanti = NULL;
+    stanza_inizio -> destra = NULL;
+    stanza_inizio -> sinistra = NULL;
+    stanza_inizio -> stanza_precedente = NULL;
+    stanza_inizio -> emergenza_chiamata = non_effettuata;
+    probabilita = rand() % 100;
+    if(probabilita < 15) {
+      stanza_inizio -> tipo = quest_complicata;
+    }
+    else if(probabilita >= 15 && probabilita < 40) {
+      stanza_inizio -> tipo = botola;
+    }
+    else if(probabilita >= 40 && probabilita < 70) {
+      stanza_inizio -> tipo = quest_semplice;
+    }
+    else {
+      stanza_inizio -> tipo = vuota;
+    }
+    lista_stanze -> node = (struct Stanza *) malloc(sizeof(struct Stanza));
+    lista_stanze -> node = stanza_inizio; // Salvo la stanza d'inizio nella lista delle stanze
+    conta_stanze++; // Incremento il contatore delle stanze
   }
   else {
-    giocatori[i].posizione -> tipo = vuota;
+    giocatori[i].posizione -> destra = NULL;
+    giocatori[i].posizione -> avanti = NULL;
+    giocatori[i].posizione -> sinistra = NULL;
+    giocatori[i].posizione -> emergenza_chiamata = non_effettuata;
+    probabilita = rand() % 100;
+    if(probabilita < 15) {
+      giocatori[i].posizione -> tipo = quest_complicata;
+    }
+    else if(probabilita >= 15 && probabilita < 40) {
+      giocatori[i].posizione -> tipo = botola;
+    }
+    else if(probabilita >= 40 && probabilita < 70) {
+      giocatori[i].posizione -> tipo = quest_semplice;
+    }
+    else {
+      giocatori[i].posizione -> tipo = vuota;
+    }
+    // Salvo la stanza appena creata nella lista delle stanze
+    lista_stanze[conta_stanze].node = (struct Stanza *) malloc(sizeof(struct Stanza));
+    lista_stanze[conta_stanze++].node = giocatori[i].posizione;
   }
-  // Salvo la stanza appena creata nella lista delle stanze
-  lista_stanze[conta_stanze].node = (struct Stanza *) malloc(sizeof(struct Stanza));
-  lista_stanze[conta_stanze++].node = giocatori[i].posizione;
 }
 
 // Funzione che permette lo spostamento del giocatore
@@ -112,39 +138,39 @@ static void avanza(unsigned short int i) {
       case 1:
         if(giocatori[i].posizione -> avanti == NULL) {
           giocatori[i].posizione -> avanti = (struct Stanza *) malloc(sizeof(struct Stanza));
-          giocatori[i].posizione -> avanti -> stanza_precedente = giocatori[i].posizione;
-          giocatori[i].posizione = giocatori[i].posizione -> avanti;
-          crea_stanza(i);
+          giocatori[i].posizione -> avanti -> stanza_precedente = giocatori[i].posizione; // Aggiorno la stanza precedente
+          giocatori[i].posizione = giocatori[i].posizione -> avanti;  // Mi sposto effettivamente in quel indirizzo
+          crea_stanza(i, NULL); // Creo la stanza
         }
         else {
-          giocatori[i].posizione -> avanti -> stanza_precedente = giocatori[i].posizione;
-          giocatori[i].posizione = giocatori[i].posizione -> avanti;
+          giocatori[i].posizione -> avanti -> stanza_precedente = giocatori[i].posizione; // Aggiorno la stanza precedente
+          giocatori[i].posizione = giocatori[i].posizione -> avanti;  // Mi sposto effettivamente in quel indirizzo
         }
         printf(" Giocatore %s ti sei spostato in avanti nella stanza %p\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione);
         break;
       case 2:
         if(giocatori[i].posizione -> destra == NULL) {
           giocatori[i].posizione -> destra = (struct Stanza *) malloc(sizeof(struct Stanza));
-          giocatori[i].posizione -> destra -> stanza_precedente = giocatori[i].posizione;
-          giocatori[i].posizione = giocatori[i].posizione -> destra;
-          crea_stanza(i);
+          giocatori[i].posizione -> destra -> stanza_precedente = giocatori[i].posizione; // Aggiorno la stanza precedente
+          giocatori[i].posizione = giocatori[i].posizione -> destra;  // Mi sposto effettivamente in quel indirizzo
+          crea_stanza(i, NULL); // Creo la stanza
         }
         else {
-          giocatori[i].posizione -> destra -> stanza_precedente = giocatori[i].posizione;
-          giocatori[i].posizione = giocatori[i].posizione -> destra;
+          giocatori[i].posizione -> destra -> stanza_precedente = giocatori[i].posizione; // Aggiorno la stanza precedente
+          giocatori[i].posizione = giocatori[i].posizione -> destra;  // Mi sposto effettivamente in quel indirizzo
         }
         printf(" Giocatore %s ti sei spostato a destra nella stanza %p\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione);
         break;
         case 3:
         if(giocatori[i].posizione -> sinistra == NULL) {
           giocatori[i].posizione -> sinistra = (struct Stanza *) malloc(sizeof(struct Stanza));
-          giocatori[i].posizione -> sinistra -> stanza_precedente = giocatori[i].posizione;
-          giocatori[i].posizione = giocatori[i].posizione -> sinistra;
-          crea_stanza(i);
+          giocatori[i].posizione -> sinistra -> stanza_precedente = giocatori[i].posizione; // Aggiorno la stanza precedente
+          giocatori[i].posizione = giocatori[i].posizione -> sinistra;  // Mi sposto effettivamente in quel indirizzo
+          crea_stanza(i, NULL); // Creo la stanza
         }
         else {
-          giocatori[i].posizione -> sinistra -> stanza_precedente = giocatori[i].posizione;
-          giocatori[i].posizione = giocatori[i].posizione -> sinistra;
+          giocatori[i].posizione -> sinistra -> stanza_precedente = giocatori[i].posizione; // Aggiorno la stanza precedente
+          giocatori[i].posizione = giocatori[i].posizione -> sinistra;  // Mi sposto effettivamente in quel indirizzo
         }
         printf(" Giocatore %s ti sei spostato a sinistra nella stanza %p\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione);
         break;
@@ -360,8 +386,8 @@ static unsigned short int sabotaggio(unsigned short int i) {
 // Funzione che permette di impostare il gioco da parte degli utenti
 void imposta_gioco() {
   termina_gioco();  // Dealloco tutto in caso l'utente reinserisce la voce 1 nel menù principale anziché la voce 2 (gioca)
-  struct Stanza* stanza_inizio;
-  unsigned short int scelta = 0, colori[10], contatore_impostori = 0, probabilita = 0;
+  struct Stanza* stanza_inizio; // Non ci sarà bisogno di fare il deallocamento in quanto stanza_inizio avrà lo stesso indirizzo di lista_stanze
+  unsigned short int scelta = 0, colori[10], contatore_impostori = 0;
   printf(" Inserisci il numero dei giocatori per questa partita: ");
   do {
     scanf("%hu", &num_giocatori);
@@ -373,29 +399,7 @@ void imposta_gioco() {
   giocatori = (struct Giocatore *) calloc(num_giocatori, sizeof(struct Giocatore)); // Alloco nell'heap l'array dei giocatori
   stanza_inizio = (struct Stanza *) malloc(sizeof(struct Stanza));  // Alloco nell'heap un puntatore stanza
   lista_stanze = (struct Stanza *) malloc(sizeof(struct Stanza)); // Alloco nell'heap un puntatore stanza
-  // Preparo la stanza d'inizio
-  stanza_inizio -> avanti = NULL;
-  stanza_inizio -> destra = NULL;
-  stanza_inizio -> sinistra = NULL;
-  stanza_inizio -> stanza_precedente = NULL;
-  stanza_inizio -> emergenza_chiamata = non_effettuata;
-  probabilita = rand() % 100;
-  if(probabilita < 15) {
-    stanza_inizio -> tipo = quest_complicata;
-  }
-  else if(probabilita >= 15 && probabilita < 40) {
-    stanza_inizio -> tipo = botola;
-  }
-  else if(probabilita >= 40 && probabilita < 70) {
-    stanza_inizio -> tipo = quest_semplice;
-  }
-  else {
-    stanza_inizio -> tipo = vuota;
-  }
-  conta_stanze = 0;
-  lista_stanze -> node = (struct Stanza *) malloc(sizeof(struct Stanza));
-  lista_stanze -> node = stanza_inizio; // Salvo la stanza d'inizio nella lista delle stanze
-  conta_stanze++; // Incremento il contatore delle stanze
+  crea_stanza(0, stanza_inizio);
   mischia(10, colori);  // Mischio un array di 10 elementi (short int senza segno da 0 a 9)
   // Popolo l'array giocatori
   for(int i = 0; i < num_giocatori; i++) {
@@ -656,13 +660,9 @@ void gioca() {
 
 void termina_gioco() {
   if(lista_stanze != NULL && giocatori != NULL) {
-    for(int i = 0; i < conta_stanze; i++) {
-      if(lista_stanze[i].node != NULL) {
-        free(lista_stanze[i].node);
-        lista_stanze[i].node = NULL;
-      }
-    }
-    free(giocatori);
+    free(lista_stanze); // Dealloco lista_stanze
+    lista_stanze = NULL;
+    free(giocatori);  // Dealloco giocatori
     giocatori = NULL;
   }
   quest_da_finire = 0;
