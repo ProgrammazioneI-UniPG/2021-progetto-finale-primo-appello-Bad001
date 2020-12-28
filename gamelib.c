@@ -672,6 +672,7 @@ void gioca() {
     getchar();
     system("clear");  // Pulisco lo schermo
   }
+  termina_gioco();
 }
 
 void stampa_menu() {
