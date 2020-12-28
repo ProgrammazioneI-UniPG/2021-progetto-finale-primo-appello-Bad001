@@ -74,7 +74,7 @@ static void inizia_gioco() {
   printf(" Impostazioni settate, torno al menu principale...\n");
 }
 
-// Funzione che acquisisce l'indice del giocatore attuale creando la stanza appena scoperta
+// Funzione che acquisisce l'indice del giocatore attuale e un eventuale puntatore (di inizio) creando la stanza appena scoperta
 static void crea_stanza(unsigned short int i, struct Stanza * stanza_inizio) {
   unsigned short int probabilita = 0;
   if(conta_stanze == 0) {
@@ -384,6 +384,26 @@ static unsigned short int sabotaggio(unsigned short int i) {
   return 0; // Se ritorno 0 significa che la stanza non possiede quest
 }
 
+// Funzione che dealloca gli elementi in memoria dinamica
+static void termina_gioco() {
+  if(lista_stanze != NULL && giocatori != NULL) {
+    // Dealloco lista_stanze
+    for(int i = 0; i < conta_stanze; i++) {
+      if(lista_stanze[i].node != NULL) {
+        free(lista_stanze[i].node);
+        lista_stanze[i].node = NULL;
+      }
+    }
+    free(lista_stanze);
+    lista_stanze = NULL;
+    free(giocatori);  // Dealloco giocatori
+    giocatori = NULL;
+  }
+  quest_da_finire = 0;
+  num_giocatori = 0;
+  conta_stanze = 0;
+}
+
 // Funzione che permette di impostare il gioco da parte degli utenti
 void imposta_gioco() {
   termina_gioco();  // Dealloco tutto in caso l'utente reinserisce la voce 1 nel menù principale anziché la voce 2 (gioca)
@@ -652,25 +672,6 @@ void gioca() {
     getchar();
     system("clear");  // Pulisco lo schermo
   }
-}
-
-void termina_gioco() {
-  if(lista_stanze != NULL && giocatori != NULL) {
-    // Dealloco lista_stanze
-    for(int i = 0; i < conta_stanze; i++) {
-      if(lista_stanze[i].node != NULL) {
-        free(lista_stanze[i].node);
-        lista_stanze[i].node = NULL;
-      }
-    }
-    free(lista_stanze);
-    lista_stanze = NULL;
-    free(giocatori);  // Dealloco giocatori
-    giocatori = NULL;
-  }
-  quest_da_finire = 0;
-  num_giocatori = 0;
-  conta_stanze = 0;
 }
 
 void stampa_menu() {

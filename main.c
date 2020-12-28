@@ -26,8 +26,7 @@ int main() {
           printf(" Devi prima settare il gioco\n");
         }
         break;
-      case 3: termina_gioco();
-        printf(" Arrivederci!\n");
+      case 3: printf(" Arrivederci!\n");
         break;
       default: printf(" Voce del menu inesistente\n");
     }

@@ -1,6 +1,5 @@
 void imposta_gioco();
 void gioca();
-void termina_gioco();
 void stampa_menu();
 
 enum Emergenza_chiamata {non_effettuata, effettuata};
