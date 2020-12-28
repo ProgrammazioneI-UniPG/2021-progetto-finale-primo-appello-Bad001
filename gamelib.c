@@ -330,12 +330,12 @@ static unsigned short int usa_botola(unsigned short int i) {
   unsigned short int contatore_botole = 0;
   unsigned short int indice_casuale = 0;
   unsigned short int conta_stanze_botola = 0;
-  struct Stanza* lista_stanze_botola = (struct Stanza *) malloc(sizeof(struct Stanza)); // Alloco nell'heap un puntatore di tipo stanza
+  struct Stanza* lista_stanze_botola = (struct Stanza *) malloc(sizeof(struct Stanza));
   if(giocatori[i].posizione -> tipo == botola && conta_stanze > 1) {  // Se il giocatore che gioca si trova in una stanza di tipo botola e le stanze nella lista sono maggiori di 1
     for(int i = 0; i < conta_stanze; i++) {
       if(lista_stanze[i].node -> tipo == botola) {
-        lista_stanze_botola[conta_stanze_botola].avanti = lista_stanze[i].node;
-        lista_stanze_botola[++conta_stanze_botola].avanti = (struct Stanza *) malloc(sizeof(struct Stanza));
+        lista_stanze_botola[conta_stanze_botola].avanti = (struct Stanza *) malloc(sizeof(struct Stanza));
+        lista_stanze_botola[conta_stanze_botola++].avanti = lista_stanze[i].node;
         contatore_botole++;
       }
     }
@@ -353,7 +353,8 @@ static unsigned short int usa_botola(unsigned short int i) {
       giocatori[i].posizione = lista_stanze_botola[indice_casuale].avanti;  // Sposto l'impostore
       printf(" Giocatore %s ti sei spostato nella stanza %p\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione);
     }
-    free(lista_stanze_botola);  // Dealloco lista_stanze_botola
+    // Non c'è bisogno di deallocare i nodi di lista_stanze_botola perché contengono i riferimenti di lista_stanze
+    free(lista_stanze_botola);
     lista_stanze_botola = NULL;
     return 1;
   }
@@ -365,7 +366,7 @@ static unsigned short int usa_botola(unsigned short int i) {
       printf(" La stanza %p non è di tipo botola, ma di tipo %s\n", giocatori[i].posizione, get_tipo_stanza(giocatori[i].posizione -> tipo));
     }
   }
-  free(lista_stanze_botola);  // Dealloco lista_stanze_botola
+  free(lista_stanze_botola);
   lista_stanze_botola = NULL;
   return 0;
 }
@@ -486,10 +487,6 @@ void gioca() {
     system("clear");  // Pulisco lo schermo
     // Ciclo fino a quando i contatori degli astronauti e quello degli impostori è maggiore di 0 e i minore del numero dei giocatori (per rimischiare i turni)
     for(int i = 0; i < num_giocatori && (quest_finite < quest_da_finire && contatore_impostori > 0 && contatore_astronauti > 0); i++) {
-      printf(" Le stanze:\n");
-      for(int i = 0; i < conta_stanze; i++) {
-        printf("\t%p\n", lista_stanze[i].node);
-      }
       if(giocatori[turni[i]].stato == astronauta) { // Se il giocatore che sta giocando è un astronauta
         printf(" Giocatore %s ti trovi nella stanza %p di tipo %s\n", get_nome_giocatore(giocatori[turni[i]].nome), giocatori[turni[i]].posizione, get_tipo_stanza(giocatori[turni[i]].posizione -> tipo));
         printf(" I giocatori presenti nella stanza sono:\n");
@@ -655,12 +652,18 @@ void gioca() {
     getchar();
     system("clear");  // Pulisco lo schermo
   }
-  termina_gioco();  // Dealloco i puntatori nell'heap
 }
 
 void termina_gioco() {
   if(lista_stanze != NULL && giocatori != NULL) {
-    free(lista_stanze); // Dealloco lista_stanze
+    // Dealloco lista_stanze
+    for(int i = 0; i < conta_stanze; i++) {
+      if(lista_stanze[i].node != NULL) {
+        free(lista_stanze[i].node);
+        lista_stanze[i].node = NULL;
+      }
+    }
+    free(lista_stanze);
     lista_stanze = NULL;
     free(giocatori);  // Dealloco giocatori
     giocatori = NULL;
