@@ -385,17 +385,12 @@ static unsigned short int sabotaggio(unsigned short int i) {
 }
 
 // Funzione che dealloca gli elementi in memoria dinamica
-static void termina_gioco() {
+void termina_gioco() {
   if(lista_stanze != NULL && giocatori != NULL) {
-    // Dealloco lista_stanze
-    for(int i = 0; i < conta_stanze; i++) {
-      if(lista_stanze[i].node != NULL) {
-        free(lista_stanze[i].node);
-        lista_stanze[i].node = NULL;
-      }
-    }
-    free(lista_stanze);
-    lista_stanze = NULL;
+    do {
+      lista_stanze = lista_stanze -> node;
+      free(lista_stanze);
+    } while(lista_stanze != NULL);
     free(giocatori);  // Dealloco giocatori
     giocatori = NULL;
   }
@@ -672,7 +667,6 @@ void gioca() {
     getchar();
     system("clear");  // Pulisco lo schermo
   }
-  termina_gioco();
 }
 
 void stampa_menu() {
