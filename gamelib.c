@@ -537,7 +537,7 @@ void gioca() {
               }
               esito = 0;
               // L'espressione condizionale è per evitare che la sottrazione torni un valore negativo
-              printf(" Quest rimanenti: %hu\n", quest_finite > quest_da_finire ? 0 : quest_da_finire-quest_finite);
+              printf(" Quest rimanenti: %hu\n", (unsigned short int) (quest_finite > quest_da_finire ? 0 : quest_da_finire-quest_finite));
               break;
             case 3:
               esito = chiamata_emergenza(turni[i]);
