@@ -71,7 +71,7 @@ static void stampa_giocatori() {
 
 // Si poteva omettere ma era richiesta nel pdf
 static void inizia_gioco() {
-  printf(" Impostazioni settate, torno al menu principale...\n");
+  system("clear");  // Pulisco lo schermo
 }
 
 // Funzione che acquisisce l'indice del giocatore attuale e un eventuale puntatore (di inizio) creando la stanza appena scoperta
@@ -302,14 +302,12 @@ static unsigned short int uccidi_astronauta(unsigned short int i) {
       }
     } while(scelta >= contatore_astronauti || scelta < 0);
     // Inizio con le probabilità di avvistamento da parte degli astronauti
-    for(int i = 0; i < contatore_astronauti; i++) {
-      if(astronauti[i] != scelta) {
-        probabilita += 50;  // La probabilità aumenta del 50% per ogni astronauta presente vivo nella stessa stanza
-      }
-    }
     for(int j = 0; j < num_giocatori; j++) {
       if(giocatori[i].posizione -> stanza_precedente == giocatori[j].posizione && giocatori[j].stato == astronauta) {
         probabilita += 20;  // La probabilità aumenta del 20% per ogni astronauta presente vivo nella stanza precedente
+      }
+      if(giocatori[i].posizione == giocatori[j].posizione && giocatori[j].stato == astronauta) {
+        probabilita += 50;  // La probabilità aumenta del 50% per ogni astronauta presente vivo nella stessa stanza
       }
     }
     if((rand()%100) < probabilita) {
@@ -389,7 +387,7 @@ void termina_gioco() {
   if(lista_stanze != NULL && giocatori != NULL) {
     do {
       lista_stanze = lista_stanze -> node;
-      free(lista_stanze);
+      free(lista_stanze); // Dealloco i nodi
     } while(lista_stanze != NULL);
     free(giocatori);  // Dealloco giocatori
     giocatori = NULL;
