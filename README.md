@@ -6,12 +6,13 @@
 
 # Matricola: 330326
 
-#Descrizione modifiche
+# Descrizione modifiche
 
 Le modifiche apportate sono prettamente estetiche e atte a migliorare
 l'esperienza di gioco (ad esempio il system("clear")),
 il resto è tutta traccia del pdf.
-#!!!!!!!!!ISSUES!!!!!!!!!
+
+# !!!!!!!!!ISSUES!!!!!!!!!
 
 I problemi riscontrati sono nel deallocamento della lista delle stanze
 in quanto non ho ben compreso come deallocare bene e di conseguenza risulterà
