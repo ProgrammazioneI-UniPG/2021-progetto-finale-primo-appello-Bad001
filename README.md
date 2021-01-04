@@ -15,7 +15,8 @@ il resto è tutta traccia del pdf.
 # !!!!!!!!!ISSUES!!!!!!!!!
 
 I problemi riscontrati sono nel deallocamento della lista delle stanze
-in quanto non ho ben compreso come deallocare bene e di conseguenza risulterà
-commentato per evitare problemi durante l'esecuzione del programma.
-Preferirei portare all'esame un progetto funzionante al 100% che non dealloca
-piuttosto che portare all'esame un progetto con bug che dealloca in parte e male.
+non sono sicuro che deallochi bene.
+Ogni tanto avanza() non manda i giocatori dove dovrebbero e si reincontrano
+senza un apparente motivo per esempio quando ne mando due avanti e due a destra
+e successivamente mando entrambi i giocatori della stanza avanti a destra
+questi ultimi si ritrovano nella medesima stanza (sbagliato).
