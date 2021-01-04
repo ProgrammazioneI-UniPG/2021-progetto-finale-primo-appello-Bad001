@@ -385,12 +385,12 @@ static unsigned short int sabotaggio(unsigned short int i) {
 // Funzione che dealloca gli elementi in memoria dinamica
 void termina_gioco() {
   if(lista_stanze != NULL && giocatori != NULL) {
-    /*
-    do {
-      lista_stanze = lista_stanze -> node;  // Non capisco come poter deallocare
-      free(lista_stanze);                   // correttamente la lista delle stanze
-    } while(lista_stanze != NULL);
-    */
+    struct Stanza * tmp;
+    while(lista_stanze != NULL) {
+      tmp = lista_stanze -> node;
+      free(lista_stanze);
+      lista_stanze = tmp;
+    }
     free(giocatori);  // Dealloco giocatori
     giocatori = NULL;
   }
