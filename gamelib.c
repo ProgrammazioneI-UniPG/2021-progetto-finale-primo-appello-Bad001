@@ -385,11 +385,12 @@ static unsigned short int sabotaggio(unsigned short int i) {
 // Funzione che dealloca gli elementi in memoria dinamica
 void termina_gioco() {
   if(lista_stanze != NULL && giocatori != NULL) {
-    struct Stanza * tmp;
-    while(lista_stanze != NULL) {
-      tmp = lista_stanze -> node;
-      free(lista_stanze);
-      lista_stanze = tmp;
+    free(lista_stanze); // Dealloco il puntatore di lista_stanze
+    printf(" Numero delle stanze create durante la partita precedente: %d\n", conta_stanze);
+    for(int i = 0; i < conta_stanze; i++) {
+      printf(" Rimosso stanza: %p\n", lista_stanze[i].node);
+      free(lista_stanze[i].node); // Dealloco i nodi della lista
+      lista_stanze[i].node = NULL;
     }
     free(giocatori);  // Dealloco giocatori
     giocatori = NULL;

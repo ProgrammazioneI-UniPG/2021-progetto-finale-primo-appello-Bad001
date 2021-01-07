@@ -11,8 +11,3 @@
 Le modifiche apportate sono prettamente estetiche e atte a migliorare
 l'esperienza di gioco (ad esempio il system("clear")),
 il resto è tutta traccia del pdf.
-
-# Da migliorare
-
-Il deallocamento va sicuramente riscritto, si possono notare i vari tentativi
-nei commit precedenti.
