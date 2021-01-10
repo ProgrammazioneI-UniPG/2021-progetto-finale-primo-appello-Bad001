@@ -4,8 +4,9 @@
 
 // Variabili globali visibili solo al file corrente
 static struct Stanza* lista_stanze;
+static struct Stanza* stanza_inizio;
 static struct Giocatore* giocatori;
-static unsigned short int quest_da_finire, num_giocatori, conta_stanze;  // Conta stanze è il numero totale delle stanze
+static unsigned short int quest_da_finire, num_giocatori;
 
 // Funzione che in base al numero passato per parametro torna una stringa colorata che rappresenta il nome del giocatore
 static const char * get_nome_giocatore(unsigned short int num) {
@@ -63,7 +64,7 @@ static void mischia(unsigned short int lun, unsigned short int * array) {
 }
 
 static void stampa_giocatori() {
-  printf(" La stanza iniziale %p è di tipo %s\n", lista_stanze -> node, get_tipo_stanza(lista_stanze -> node -> tipo));
+  printf(" La stanza iniziale %p è di tipo %s\n", stanza_inizio, get_tipo_stanza(stanza_inizio -> tipo));
   for(int i = 0; i < num_giocatori; i++) {
     printf("\tIl giocatore %s è un %s\n", get_nome_giocatore(giocatori[i].nome), get_stato_giocatore(giocatori[i].stato));
   }
@@ -75,9 +76,9 @@ static void inizia_gioco() {
 }
 
 // Funzione che acquisisce l'indice del giocatore attuale e un eventuale puntatore (di inizio) creando la stanza appena scoperta
-static void crea_stanza(unsigned short int i, struct Stanza * stanza_inizio) {
+static void crea_stanza(unsigned short int i) {
   unsigned short int probabilita = 0;
-  if(conta_stanze == 0) {
+  if(i == 10) {
     // Preparo la stanza d'inizio
     stanza_inizio -> avanti = NULL;
     stanza_inizio -> destra = NULL;
@@ -99,7 +100,8 @@ static void crea_stanza(unsigned short int i, struct Stanza * stanza_inizio) {
     }
     lista_stanze -> node = (struct Stanza *) malloc(sizeof(struct Stanza));
     lista_stanze -> node = stanza_inizio; // Salvo la stanza d'inizio nella lista delle stanze
-    conta_stanze++; // Incremento il contatore delle stanze
+    lista_stanze = lista_stanze -> node;  // Aggiorno la testa
+    lista_stanze -> node = NULL;
   }
   else {
     giocatori[i].posizione -> destra = NULL;
@@ -120,8 +122,10 @@ static void crea_stanza(unsigned short int i, struct Stanza * stanza_inizio) {
       giocatori[i].posizione -> tipo = vuota;
     }
     // Salvo la stanza appena creata nella lista delle stanze
-    lista_stanze[conta_stanze].node = (struct Stanza *) malloc(sizeof(struct Stanza));
-    lista_stanze[conta_stanze++].node = giocatori[i].posizione;
+    lista_stanze -> node = (struct Stanza *) malloc(sizeof(struct Stanza));
+    lista_stanze -> node = giocatori[i].posizione;  // Salvo la posizione del giocatore nella lista delle stanze
+    lista_stanze = lista_stanze -> node;
+    lista_stanze -> node = NULL;
   }
 }
 
@@ -140,7 +144,7 @@ static void avanza(unsigned short int i) {
           giocatori[i].posizione -> avanti = (struct Stanza *) malloc(sizeof(struct Stanza));
           giocatori[i].posizione -> avanti -> stanza_precedente = giocatori[i].posizione; // Aggiorno la stanza precedente
           giocatori[i].posizione = giocatori[i].posizione -> avanti;  // Mi sposto effettivamente in quel indirizzo
-          crea_stanza(i, NULL); // Creo la stanza
+          crea_stanza(i); // Creo la stanza
         }
         else {
           giocatori[i].posizione -> avanti -> stanza_precedente = giocatori[i].posizione; // Aggiorno la stanza precedente
@@ -153,7 +157,7 @@ static void avanza(unsigned short int i) {
           giocatori[i].posizione -> destra = (struct Stanza *) malloc(sizeof(struct Stanza));
           giocatori[i].posizione -> destra -> stanza_precedente = giocatori[i].posizione; // Aggiorno la stanza precedente
           giocatori[i].posizione = giocatori[i].posizione -> destra;  // Mi sposto effettivamente in quel indirizzo
-          crea_stanza(i, NULL); // Creo la stanza
+          crea_stanza(i); // Creo la stanza
         }
         else {
           giocatori[i].posizione -> destra -> stanza_precedente = giocatori[i].posizione; // Aggiorno la stanza precedente
@@ -166,7 +170,7 @@ static void avanza(unsigned short int i) {
           giocatori[i].posizione -> sinistra = (struct Stanza *) malloc(sizeof(struct Stanza));
           giocatori[i].posizione -> sinistra -> stanza_precedente = giocatori[i].posizione; // Aggiorno la stanza precedente
           giocatori[i].posizione = giocatori[i].posizione -> sinistra;  // Mi sposto effettivamente in quel indirizzo
-          crea_stanza(i, NULL); // Creo la stanza
+          crea_stanza(i); // Creo la stanza
         }
         else {
           giocatori[i].posizione -> sinistra -> stanza_precedente = giocatori[i].posizione; // Aggiorno la stanza precedente
@@ -327,21 +331,34 @@ static unsigned short int uccidi_astronauta(unsigned short int i) {
 static unsigned short int usa_botola(unsigned short int i) {
   unsigned short int contatore_botole = 0;
   unsigned short int indice_casuale = 0;
-  unsigned short int conta_stanze_botola = 0;
-  struct Stanza* lista_stanze_botola = (struct Stanza *) malloc(sizeof(struct Stanza));
+  unsigned short int conta_stanze = 0;
+  struct Stanza * tmp = (struct Stanza *) malloc(sizeof(struct Stanza));
+  struct Stanza * lista_stanze_botola = (struct Stanza *) malloc(sizeof(struct Stanza));
+  tmp = stanza_inizio;
+  while(tmp != NULL) {
+    tmp = tmp -> node;
+    conta_stanze++;
+  }
+  tmp = stanza_inizio;
   if(giocatori[i].posizione -> tipo == botola && conta_stanze > 1) {  // Se il giocatore che gioca si trova in una stanza di tipo botola e le stanze nella lista sono maggiori di 1
-    for(int i = 0; i < conta_stanze; i++) {
-      if(lista_stanze[i].node -> tipo == botola) {
-        lista_stanze_botola[conta_stanze_botola].avanti = (struct Stanza *) malloc(sizeof(struct Stanza));
-        lista_stanze_botola[conta_stanze_botola++].avanti = lista_stanze[i].node;
-        contatore_botole++;
+    while(tmp != NULL) {
+      if(tmp -> tipo == botola) {
+        lista_stanze_botola[contatore_botole].avanti = (struct Stanza *) malloc(sizeof(struct Stanza));
+        lista_stanze_botola[contatore_botole++].avanti = tmp;
       }
+      tmp = tmp -> node;
     }
     if(contatore_botole == 1) { // Se è presente solo 1 botola nella lista_stanze
       do {
-        indice_casuale = rand() % conta_stanze; // Creo l'indice casuale
-      } while(giocatori[i].posizione == lista_stanze[indice_casuale].node); // Continua se la posizione è uguale alla stanza estratta
-      giocatori[i].posizione = lista_stanze[indice_casuale].node; // Sposto l'impostore
+        tmp = stanza_inizio;
+        indice_casuale = (rand() % conta_stanze) + 1; // Creo l'indice casuale
+        for(int j = 0; j < indice_casuale; j++) {
+          if(tmp != NULL) {
+            tmp = tmp -> node;
+          }
+        }
+      } while(giocatori[i].posizione == tmp); // Continua se la posizione è uguale alla stanza estratta
+      giocatori[i].posizione = tmp; // Sposto l'impostore
       printf(" Giocatore %s ti sei spostato nella stanza %p\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione);
     }
     else {
@@ -352,8 +369,6 @@ static unsigned short int usa_botola(unsigned short int i) {
       printf(" Giocatore %s ti sei spostato nella stanza %p\n", get_nome_giocatore(giocatori[i].nome), giocatori[i].posizione);
     }
     // Non c'è bisogno di deallocare i nodi di lista_stanze_botola perché contengono i riferimenti di lista_stanze
-    free(lista_stanze_botola);
-    lista_stanze_botola = NULL;
     return 1;
   }
   else {
@@ -364,8 +379,6 @@ static unsigned short int usa_botola(unsigned short int i) {
       printf(" La stanza %p non è di tipo botola, ma di tipo %s\n", giocatori[i].posizione, get_tipo_stanza(giocatori[i].posizione -> tipo));
     }
   }
-  free(lista_stanze_botola);
-  lista_stanze_botola = NULL;
   return 0;
 }
 
@@ -384,26 +397,23 @@ static unsigned short int sabotaggio(unsigned short int i) {
 
 // Funzione che dealloca gli elementi in memoria dinamica
 void termina_gioco() {
-  if(lista_stanze != NULL && giocatori != NULL) {
-    free(lista_stanze); // Dealloco il puntatore di lista_stanze
-    printf(" Numero delle stanze create durante la partita precedente: %hu\n", conta_stanze);
-    for(int i = 0; i < conta_stanze; i++) {
-      printf(" Rimosso stanza: %p\n", lista_stanze[i].node);
-      free(lista_stanze[i].node); // Dealloco i nodi della lista
-      lista_stanze[i].node = NULL;
+  if(stanza_inizio != NULL && giocatori != NULL) {
+    printf(" Le stanze create durante la partita precedente:\n");
+    while(stanza_inizio != NULL) {
+      printf(" Rimosso stanza: %p\n", stanza_inizio);
+      free(stanza_inizio);  // Dealloco i nodi
+      stanza_inizio = stanza_inizio -> node;
     }
     free(giocatori);  // Dealloco giocatori
     giocatori = NULL;
   }
   quest_da_finire = 0;
   num_giocatori = 0;
-  conta_stanze = 0;
 }
 
 // Funzione che permette di impostare il gioco da parte degli utenti
 void imposta_gioco() {
   termina_gioco();  // Dealloco tutto in caso l'utente reinserisce la voce 1 nel menù principale anziché la voce 2 (gioca)
-  struct Stanza* stanza_inizio; // Non ci sarà bisogno di fare il deallocamento in quanto stanza_inizio avrà lo stesso indirizzo di lista_stanze
   unsigned short int scelta = 0, colori[10], contatore_impostori = 0;
   printf(" Inserisci il numero dei giocatori per questa partita: ");
   do {
@@ -416,7 +426,7 @@ void imposta_gioco() {
   giocatori = (struct Giocatore *) calloc(num_giocatori, sizeof(struct Giocatore)); // Alloco nell'heap l'array dei giocatori
   stanza_inizio = (struct Stanza *) malloc(sizeof(struct Stanza));  // Alloco nell'heap un puntatore stanza
   lista_stanze = (struct Stanza *) malloc(sizeof(struct Stanza)); // Alloco nell'heap un puntatore stanza
-  crea_stanza(0, stanza_inizio);
+  crea_stanza(10);  // Così da farlo entrare nel primo controllo
   mischia(10, colori);  // Mischio un array di 10 elementi (short int senza segno da 0 a 9)
   // Popolo l'array giocatori
   for(int i = 0; i < num_giocatori; i++) {
